@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>くらしの家計ナビ｜稲美町社会福祉協議会</title>
+<!--
+============================================================================
+  くらしの家計ナビ（家計の見える化と相談のヒント）
+  稲美町社会福祉協議会
+
+  ■ このファイルについて
+    ・ブラウザ（Edge / Chrome / Safari など）でこのファイルを開くだけで動きます。
+    ・インターネット接続やインストールは不要です。
+    ・入力した金額・チェックはどこにも送信されません（この画面の中だけで計算します）。
+
+  ■ 編集方法（坂口さん向け）
+    ・掲載時点・連絡先・めやすの数字は、下の「★編集ゾーン」にまとめてあります。
+    ・「めやす」の割合（食費○％など）は公的基準ではなく一般的なめやすです。
+      画面上もそのように表示しています。
+    ・生活保護のめやす表は、くらしの相談ナビと同じ根拠
+      （厚労省 令和8年4月生活扶助基準・兵庫県3級地の住宅扶助）です。
+      基準改定（毎年4月・10月に改定されることがある）の際は見直してください。
+============================================================================
+-->
+<style>
+  :root{
+    --blue:#2a6f8f;
+    --blue-dark:#1d5570;
+    --blue-light:#e7f1f5;
+    --ink:#2b2b2b;
+    --sub:#5a6a72;
+    --line:#d3e1e8;
+    --warn-bg:#fff6e5;
+    --warn-line:#e8c98a;
+    --danger:#c0392b;
+    --danger-bg:#fdeeec;
+    --caution:#b9770e;
+    --caution-bg:#fdf6e7;
+    --ok:#2e7d5b;
+    --ok-bg:#e8f3ee;
+    --card:#ffffff;
+    --bg:#f3f7f9;
+    --accent:#c2622d;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",system-ui,sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    line-height:1.75;
+    font-size:18px;
+  }
+  .wrap{max-width:840px;margin:0 auto;padding:0 16px 120px;}
+
+  header.site{
+    background:var(--blue);
+    color:#fff;
+    padding:20px 16px;
+    text-align:center;
+  }
+  header.site h1{margin:0;font-size:26px;letter-spacing:1px;}
+  header.site p{margin:6px 0 0;font-size:15px;opacity:.92;}
+  .asof-badge{
+    display:inline-block;background:#fff;color:var(--blue-dark);
+    font-size:12px;font-weight:bold;border-radius:999px;
+    padding:2px 12px;margin-top:8px;
+  }
+
+  .notice{
+    background:var(--warn-bg);border:1.5px solid var(--warn-line);
+    border-radius:var(--radius);padding:16px 18px;margin:22px 0;font-size:15px;
+  }
+  .notice .title{display:block;margin-bottom:6px;font-size:16px;}
+  .notice ul{margin:6px 0 0;padding-left:20px;}
+  .notice li{margin:6px 0;}
+
+  h2.q{font-size:22px;margin:30px 0 6px;color:var(--blue-dark);}
+  p.lead{margin:0 0 16px;color:var(--sub);font-size:16px;}
+
+  .sec{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;margin-bottom:18px;
+  }
+  .sec > .sec-head{
+    display:flex;align-items:center;gap:10px;margin-bottom:4px;
+  }
+  .sec > .sec-head .num{
+    background:var(--blue);color:#fff;font-weight:bold;font-size:15px;
+    width:30px;height:30px;border-radius:50%;display:flex;align-items:center;
+    justify-content:center;flex-shrink:0;
+  }
+  .sec > .sec-head h3{margin:0;font-size:20px;color:var(--blue-dark);}
+  .sec .sec-note{font-size:14px;color:var(--sub);margin:0 0 14px 40px;}
+
+  .field-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+  @media(min-width:640px){.field-grid{grid-template-columns:1fr 1fr;}}
+  .field{
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .field label{font-size:15px;font-weight:bold;color:var(--ink);}
+  .field .hint{font-size:13px;color:var(--sub);font-weight:normal;}
+  .yen-wrap{display:flex;align-items:center;gap:6px;}
+  input[type="text"].yen{
+    width:100%;max-width:220px;border:1.5px solid var(--line);border-radius:10px;
+    padding:10px 12px;font-family:inherit;font-size:18px;text-align:right;
+  }
+  input[type="text"].yen:focus{outline:none;border-color:var(--blue);}
+  .yen-unit{font-size:15px;color:var(--sub);flex-shrink:0;}
+  select{
+    border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;
+    font-family:inherit;font-size:17px;background:#fff;max-width:100%;
+  }
+  select:focus{outline:none;border-color:var(--blue);}
+
+  .chk{
+    display:flex;gap:10px;align-items:flex-start;padding:10px 12px;
+    border:1.5px solid var(--line);border-radius:10px;margin-bottom:8px;cursor:pointer;
+    transition:.12s;background:#fff;font-size:16px;
+  }
+  .chk:hover{border-color:var(--blue);background:var(--blue-light);}
+  .chk input{margin-top:5px;width:20px;height:20px;flex-shrink:0;accent-color:var(--blue);}
+  .chk.checked{border-color:var(--blue);background:var(--blue-light);}
+  .chk-grid{display:grid;grid-template-columns:1fr;gap:0 12px;}
+  @media(min-width:640px){.chk-grid{grid-template-columns:1fr 1fr;}}
+
+  .subtotal{
+    margin-top:12px;background:var(--blue-light);border-radius:10px;
+    padding:10px 14px;font-size:16px;font-weight:bold;color:var(--blue-dark);
+    text-align:right;
+  }
+
+  textarea{
+    width:100%;min-height:110px;border:1.5px solid var(--line);border-radius:10px;
+    padding:12px;font-family:inherit;font-size:16px;line-height:1.7;resize:vertical;
+  }
+  textarea:focus{outline:none;border-color:var(--blue);}
+
+  .diag-bar{
+    position:sticky;bottom:0;background:rgba(243,247,249,.96);
+    padding:12px 0 16px;margin-top:8px;z-index:5;
+    border-top:1px solid var(--line);
+  }
+  button.act{
+    font-family:inherit;font-size:17px;font-weight:bold;cursor:pointer;
+    border-radius:10px;padding:14px 26px;border:2px solid var(--blue);
+    background:var(--blue);color:#fff;transition:.15s;
+  }
+  button.act:hover{background:var(--blue-dark);border-color:var(--blue-dark);}
+  button.ghost{background:#fff;color:var(--blue-dark);}
+  button.ghost:hover{background:var(--blue-light);}
+  button.act.wide{width:100%;}
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px;}
+  .back{
+    background:none;border:none;color:var(--blue-dark);font-size:15px;
+    cursor:pointer;padding:8px 0;font-family:inherit;text-decoration:underline;
+  }
+
+  .panel{display:none;animation:fade .25s ease;}
+  .panel.show{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  /* 結果画面 */
+  .sum-cards{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:6px;}
+  @media(min-width:640px){.sum-cards{grid-template-columns:1fr 1fr 1fr;}}
+  .sum-card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px 16px;text-align:center;
+  }
+  .sum-card .t{font-size:14px;color:var(--sub);margin-bottom:2px;}
+  .sum-card .v{font-size:24px;font-weight:bold;color:var(--blue-dark);}
+  .sum-card.deficit .v{color:var(--danger);}
+  .sum-card.surplus .v{color:var(--ok);}
+
+  .chart-box{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:18px 20px;margin:14px 0;
+  }
+  .chart-box h4{margin:0 0 10px;font-size:18px;color:var(--blue-dark);}
+  .chart-note{font-size:13px;color:var(--sub);margin-top:8px;}
+  .legend{display:grid;grid-template-columns:1fr;gap:4px;font-size:14px;margin-top:10px;}
+  @media(min-width:640px){.legend{grid-template-columns:1fr 1fr;}}
+  .legend .li{display:flex;align-items:center;gap:8px;}
+  .legend .sw{width:14px;height:14px;border-radius:4px;flex-shrink:0;}
+
+  .flag{
+    border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;
+    border:1.5px solid;font-size:16px;
+  }
+  .flag .ft{font-weight:bold;display:block;margin-bottom:2px;font-size:17px;}
+  .flag.danger{background:var(--danger-bg);border-color:#e5b0a9;}
+  .flag.danger .ft{color:var(--danger);}
+  .flag.caution{background:var(--caution-bg);border-color:#e6cf9d;}
+  .flag.caution .ft{color:var(--caution);}
+  .flag.ok{background:var(--ok-bg);border-color:#bcd9cc;}
+  .flag.ok .ft{color:var(--ok);}
+  .flag.info{background:var(--blue-light);border-color:#bcd4df;}
+  .flag.info .ft{color:var(--blue-dark);}
+
+  .plan{
+    background:var(--card);border:1px solid var(--line);border-left:6px solid var(--blue);
+    border-radius:var(--radius);padding:16px 18px;margin-bottom:14px;
+  }
+  .plan h4{margin:0 0 6px;font-size:18px;color:var(--blue-dark);}
+  .plan .pr{
+    display:inline-block;font-size:13px;font-weight:bold;border-radius:6px;
+    padding:1px 10px;margin-right:8px;vertical-align:middle;
+  }
+  .plan .pr.p1{background:var(--danger-bg);color:var(--danger);}
+  .plan .pr.p2{background:var(--caution-bg);color:var(--caution);}
+  .plan .pr.p3{background:var(--blue-light);color:var(--blue-dark);}
+  .plan p{margin:6px 0;font-size:16px;}
+  .plan .win{font-size:15px;background:#f6fafb;border-radius:8px;padding:8px 12px;margin-top:8px;}
+
+  details.meyasu{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:4px 18px;margin:14px 0;
+  }
+  details.meyasu summary{
+    cursor:pointer;font-weight:bold;color:var(--blue-dark);padding:12px 0;font-size:17px;
+  }
+  details.meyasu table{border-collapse:collapse;width:100%;font-size:15px;margin:6px 0 14px;}
+  details.meyasu th,details.meyasu td{
+    border:1px solid var(--line);padding:8px 10px;text-align:left;
+  }
+  details.meyasu th{background:var(--blue-light);}
+  details.meyasu .src{font-size:13px;color:var(--sub);}
+
+  .madoguchi{
+    background:var(--blue-light);border-radius:var(--radius);padding:18px 20px;margin:20px 0;
+  }
+  .madoguchi h3{margin:0 0 8px;font-size:19px;color:var(--blue-dark);}
+  .madoguchi .m-item{margin:10px 0;font-size:16px;}
+  .madoguchi .m-item b{display:block;}
+  .madoguchi .m-item .tel{font-size:20px;font-weight:bold;color:var(--blue-dark);}
+  .madoguchi .m-item .note{font-size:14px;color:var(--sub);}
+
+  .result-disclaimer{
+    background:var(--warn-bg);border:1.5px solid var(--warn-line);border-radius:var(--radius);
+    padding:14px 16px;margin:18px 0;font-size:14px;
+  }
+
+  .skipped-note{
+    font-size:14px;color:var(--sub);background:#eef3f6;border-radius:10px;
+    padding:10px 14px;margin:12px 0;
+  }
+
+  /* 相談シート */
+  #reportArea{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    padding:24px;font-size:15px;
+  }
+  #reportArea h3{color:var(--blue-dark);border-bottom:2px solid var(--blue);
+    padding-bottom:4px;margin:18px 0 8px;font-size:17px;}
+  #reportArea h3:first-child{margin-top:0;}
+  #reportArea table{border-collapse:collapse;width:100%;font-size:14px;}
+  #reportArea th,#reportArea td{border:1px solid #bbb;padding:6px 8px;text-align:left;}
+  #reportArea th{background:#f0f5f8;width:40%;}
+  .staff-box{border:1.5px dashed #999;border-radius:8px;padding:10px 14px;margin-top:16px;}
+  .staff-box .st{font-weight:bold;font-size:13px;color:#666;}
+  .staff-lines{height:120px;}
+
+  footer.site{
+    background:var(--blue);color:#fff;text-align:center;
+    padding:24px 16px;font-size:13px;line-height:2;margin-top:40px;
+  }
+  footer.site a{color:#fff;}
+
+  .warn{font-size:14px;color:var(--accent);margin-top:10px;}
+  .kurashi-link{
+    display:block;background:var(--ok-bg);border:1.5px solid #bcd9cc;border-radius:var(--radius);
+    padding:14px 16px;margin:16px 0;font-size:15px;color:var(--ink);text-decoration:none;
+  }
+  .kurashi-link b{color:var(--ok);}
+
+  @media print{
+    header.site,.notice,.btn-row,.back,footer.site,.no-print,.diag-bar{display:none !important;}
+    body{background:#fff;font-size:12px;}
+    .wrap{max-width:100%;padding:0;}
+    #reportArea{border:none;padding:0;}
+    .panel{display:none;}
+    .panel.show-print{display:block;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <h1>くらしの家計ナビ</h1>
+  <p>稲美町社会福祉協議会｜家計を「見える化」して、これからのヒントを見つけます</p>
+  <span class="asof-badge js-asof"></span>
+</header>
+
+<div class="wrap">
+
+  <div class="notice no-print">
+    <b class="title">⚠️ ご利用にあたってのお願い（必ずお読みください）</b>
+    <ul>
+      <li>このサイトは、ご自身の家計を整理して、これからの相談につなげるための<b>参考情報</b>です。表示される診断結果・めやす・方針案は、<b>入力された内容の範囲で機械的に計算した一般的なヒント</b>であり、専門職による家計相談・診断そのものではありません。</li>
+      <li><b>診断結果について、稲美町社会福祉協議会は責任を負いかねます。</b>結果をそのまま信頼してご利用になったことで生じた損害についても、当会は責任を負いかねます（補償はいたしかねます）。大切な判断（借金の整理、契約の解約、住まいの変更など）をされる前に、<b>必ず社会福祉協議会・役場・法テラスなどの相談窓口や専門職にご相談ください。</b></li>
+      <li>掲載している制度・金額のめやすは<b><span class="js-asof-date"></span>時点</b>のものです。制度の内容・金額は変わることがあります。</li>
+      <li><b>入力はすべて任意です。</b>わかる項目・入力してもよい項目だけで診断できます（入力しなかった項目は診断に含まれません）。</li>
+      <li><b>プライバシーについて：</b>この画面に入力した金額・チェック・自由記述は、外部に送信されず、どこにも保存されません。すべてお使いの端末の中だけで計算され、画面を閉じると消えます。なお、サイトの閲覧にあたっては、一般的なホームページと同様に、サーバー提供元（GitHub社）にアクセス記録（IPアドレス・閲覧日時など）が残りますが、そこに入力内容は含まれません。</li>
+    </ul>
+  </div>
+
+  <!-- ===== 入力画面 ===== -->
+  <section class="panel show" id="panelInput">
+
+    <h2 class="q">家計のようすを教えてください</h2>
+    <p class="lead">すべて<b>任意</b>です。わかるところだけ、だいたいの金額でかまいません。金額は「1か月あたり」でご記入ください。</p>
+
+    <!-- ① 世帯のようす -->
+    <div class="sec">
+      <div class="sec-head"><span class="num">1</span><h3>世帯のようす</h3></div>
+      <p class="sec-note">生活費のめやすを考えるときの参考にします。</p>
+      <div class="field-grid">
+        <div class="field">
+          <label for="hhSize">いっしょに暮らしている人数（本人を含む）</label>
+          <select id="hhSize">
+            <option value="">選択しない</option>
+            <option value="1">1人（ひとり暮らし）</option>
+            <option value="2">2人</option>
+            <option value="3">3人</option>
+            <option value="4">4人</option>
+            <option value="5">5人</option>
+            <option value="6">6人以上</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="kids">そのうち18歳以下のお子さんの人数</label>
+          <select id="kids">
+            <option value="">選択しない</option>
+            <option value="0">いない</option>
+            <option value="1">1人</option>
+            <option value="2">2人</option>
+            <option value="3">3人</option>
+            <option value="4">4人以上</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="housingType">住まい</label>
+          <select id="housingType">
+            <option value="">選択しない</option>
+            <option value="own_loan">持ち家（住宅ローンあり）</option>
+            <option value="own">持ち家（ローンなし）</option>
+            <option value="rent">民間の賃貸（アパート・借家など）</option>
+            <option value="public">公営住宅・UR</option>
+            <option value="company">社宅・寮・住み込み</option>
+            <option value="other">その他（親族の家など）</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="workStatus">おもな働き方（本人）</label>
+          <select id="workStatus">
+            <option value="">選択しない</option>
+            <option value="fulltime">正社員・常勤</option>
+            <option value="parttime">パート・アルバイト・派遣</option>
+            <option value="self">自営業・フリーランス</option>
+            <option value="seeking">仕事を探している</option>
+            <option value="pension">働いていない（年金で生活）</option>
+            <option value="none">働いていない（その他）</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <label style="font-size:15px;font-weight:bold;">当てはまるものがあればチェックしてください（任意）</label>
+        <div class="chk-grid" style="margin-top:8px;">
+          <label class="chk"><input type="checkbox" id="fSingleParent"><span>ひとり親世帯である</span></label>
+          <label class="chk"><input type="checkbox" id="fElderly"><span>65歳以上の方がいる</span></label>
+          <label class="chk"><input type="checkbox" id="fDisability"><span>障がいのある方がいる</span></label>
+          <label class="chk"><input type="checkbox" id="fIllness"><span>病気療養中・入院中の方がいる</span></label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② 毎月の収入 -->
+    <div class="sec">
+      <div class="sec-head"><span class="num">2</span><h3>毎月の収入（手取り）</h3></div>
+      <p class="sec-note">税金や社会保険料が引かれたあとの「手取り額」を、1か月あたりでご記入ください。月によって違う場合は、だいたいの平均で。</p>
+      <div class="field-grid" id="incomeFields"></div>
+      <div class="subtotal" id="incomeSubtotal">収入の合計：未入力</div>
+    </div>
+
+    <!-- ③ 毎月の支出 -->
+    <div class="sec">
+      <div class="sec-head"><span class="num">3</span><h3>毎月の支出</h3></div>
+      <p class="sec-note">1か月あたりの、だいたいの金額でかまいません。わからない項目はとばしてください。</p>
+      <div class="field-grid" id="expenseFields"></div>
+      <div class="subtotal" id="expenseSubtotal">支出の合計：未入力</div>
+    </div>
+
+    <!-- ④ 借入・滞納・貯金 -->
+    <div class="sec">
+      <div class="sec-head"><span class="num">4</span><h3>借入れ・支払いの遅れ・貯金</h3></div>
+      <p class="sec-note">答えにくい項目かもしれませんが、家計の立て直しにいちばん大切な情報です。<b>入力しなくても診断できます。</b>入力内容はどこにも送信されません。</p>
+      <div class="field-grid">
+        <div class="field">
+          <label for="debtTotal">借金の残高（合計・だいたいで）<span class="hint">住宅ローン以外の借入れ・リボ払い残高など</span></label>
+          <div class="yen-wrap"><input type="text" class="yen" id="debtTotal" inputmode="numeric" placeholder="例）500000"><span class="yen-unit">円</span></div>
+        </div>
+        <div class="field">
+          <label for="debtCount">借りている先の数</label>
+          <select id="debtCount">
+            <option value="">選択しない</option>
+            <option value="0">借入れはない</option>
+            <option value="1">1社（1か所）</option>
+            <option value="2">2社</option>
+            <option value="3">3社</option>
+            <option value="4">4社</option>
+            <option value="5">5社以上</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <label style="font-size:15px;font-weight:bold;">借入れの種類（当てはまるものすべて）</label>
+        <div class="chk-grid" style="margin-top:8px;">
+          <label class="chk"><input type="checkbox" class="debtType" value="銀行のカードローン"><span>銀行のカードローン</span></label>
+          <label class="chk"><input type="checkbox" class="debtType" value="消費者金融"><span>消費者金融（アコム・プロミスなど）</span></label>
+          <label class="chk"><input type="checkbox" class="debtType" value="クレジットカードのリボ払い・キャッシング"><span>クレジットカードのリボ払い・キャッシング</span></label>
+          <label class="chk"><input type="checkbox" class="debtType" value="住宅ローン"><span>住宅ローン</span></label>
+          <label class="chk"><input type="checkbox" class="debtType" value="自動車ローン"><span>自動車ローン</span></label>
+          <label class="chk"><input type="checkbox" class="debtType" value="奨学金"><span>奨学金</span></label>
+          <label class="chk"><input type="checkbox" class="debtType" value="親族・知人からの借入れ"><span>親族・知人からの借入れ</span></label>
+          <label class="chk"><input type="checkbox" class="debtType" id="dtYamikin" value="よく知らない業者・ヤミ金かもしれない借入れ"><span>よく知らない業者・ヤミ金かもしれない借入れ</span></label>
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <label style="font-size:15px;font-weight:bold;">支払いが遅れているもの・滞納しているもの（当てはまるものすべて）</label>
+        <div class="chk-grid" style="margin-top:8px;">
+          <label class="chk"><input type="checkbox" class="arrears" value="rent"><span>家賃</span></label>
+          <label class="chk"><input type="checkbox" class="arrears" value="mortgage"><span>住宅ローン</span></label>
+          <label class="chk"><input type="checkbox" class="arrears" value="tax"><span>税金（住民税・固定資産税・軽自動車税など）</span></label>
+          <label class="chk"><input type="checkbox" class="arrears" value="kokuho"><span>国民健康保険料（税）</span></label>
+          <label class="chk"><input type="checkbox" class="arrears" value="nenkin"><span>国民年金保険料</span></label>
+          <label class="chk"><input type="checkbox" class="arrears" value="utility"><span>水道・電気・ガス</span></label>
+          <label class="chk"><input type="checkbox" class="arrears" value="mobile"><span>携帯電話の料金・端末代</span></label>
+          <label class="chk"><input type="checkbox" class="arrears" value="school"><span>学校関係の支払い（給食費・教材費など）</span></label>
+          <label class="chk"><input type="checkbox" class="arrears" value="debt"><span>借金の返済</span></label>
+        </div>
+      </div>
+      <div class="field-grid" style="margin-top:14px;">
+        <div class="field">
+          <label for="savings">預貯金の残高（だいたいで）</label>
+          <div class="yen-wrap"><input type="text" class="yen" id="savings" inputmode="numeric" placeholder="例）100000"><span class="yen-unit">円</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑤ 自由記述 -->
+    <div class="sec">
+      <div class="sec-head"><span class="num">5</span><h3>困っていること・気になること（自由記述）</h3></div>
+      <p class="sec-note">書かなくてもかまいません。書いた内容は「相談シート」に載り、窓口で相談するときに役立ちます。</p>
+      <textarea id="freeText" placeholder="例）毎月の返済が苦しく、食費を削っている。子どもの進学のお金が心配。"></textarea>
+    </div>
+
+    <div class="diag-bar no-print">
+      <button class="act wide" onclick="runDiagnosis()">📊 ここまでの内容で診断する</button>
+      <p style="font-size:13px;color:var(--sub);margin:8px 0 0;text-align:center;">未入力の項目があっても診断できます。入力内容はどこにも送信されません。</p>
+    </div>
+  </section>
+
+  <!-- ===== 結果画面 ===== -->
+  <section class="panel" id="panelResult">
+    <button class="back no-print" onclick="backToInput()">← 入力にもどる（内容は残っています）</button>
+    <h2 class="q">診断結果</h2>
+    <div class="result-disclaimer">
+      <b>【大切なお知らせ】</b>この診断結果は、入力された内容の範囲で機械的に計算した<b>参考情報</b>です。<b>診断結果について、稲美町社会福祉協議会は責任を負いかねます。</b>実際の家計相談では、状況をくわしくお聞きしたうえで一人ひとりに合った整理を行いますので、結果にかかわらず、お気軽に窓口へご相談ください。
+    </div>
+    <div id="resultBody"></div>
+
+    <div class="madoguchi no-print" id="contactBox"></div>
+
+    <a class="kurashi-link no-print" href="https://aosora12010916-sys.github.io/kurashi-navi/" target="_blank" rel="noopener">
+      💡 <b>使える制度を探すなら「くらしの相談ナビ」</b><br>
+      生活保護・住居確保給付金・各種手当・貸付など、稲美町で使える制度と窓口を分野別に調べられます。（別ページが開きます）
+    </a>
+
+    <div class="btn-row no-print">
+      <button class="act" onclick="buildReport()">📝 相談シートを作る（窓口に持っていける形にまとめます）</button>
+      <button class="act ghost" onclick="backToInput()">入力にもどる</button>
+    </div>
+  </section>
+
+  <!-- ===== 相談シート ===== -->
+  <section class="panel" id="panelReport">
+    <button class="back no-print" onclick="showPanel('panelResult')">← 診断結果にもどる</button>
+    <h2 class="q no-print">家計相談シート</h2>
+    <p class="lead no-print">この内容を印刷、またはPDFで保存して、社協などの窓口へお持ちください。最初から口頭で説明しなくても、職員が状況を把握できます。</p>
+    <div id="reportArea"></div>
+    <div class="btn-row no-print">
+      <button class="act" onclick="window.print()">🖨 印刷 / PDF保存</button>
+      <button class="act ghost" onclick="copyReport()">📋 文章をコピー</button>
+      <button class="act ghost" onclick="backToInput()">入力にもどる</button>
+    </div>
+    <p class="warn no-print" id="copyMsg" style="display:none;">コピーしました。メールやメモ、AIチャットなどに貼り付けられます。</p>
+  </section>
+
+</div>
+
+<footer class="site">
+  くらしの家計ナビ｜稲美町社会福祉協議会（TEL 079-492-8668）<br>
+  <span class="js-asof"></span><br>
+  ※この画面に入力した内容は外部に送信されません。<br>
+  ※本サイトの診断結果は参考情報であり、当会は結果に責任を負いかねます。<br>
+  ※手続きや大切な判断の前に、必ず相談窓口・専門職にご確認ください。
+</footer>
+
+<script>
+/* ===========================================================================
+   ★★★ 編集ゾーン ここから ★★★
+   坂口さんが文言・連絡先・めやすの数字を直す場合は、おもにこの中だけ触ればOKです。
+   =========================================================================== */
+
+/* --- ⓪ 掲載内容の時点 ------------------------------------------------------ */
+const DATA_ASOF = "令和8年（2026年）7月";
+
+/* --- ① 相談窓口 -------------------------------------------------------------
+   確認済みの連絡先だけを載せています。変更があればここを書き換えてください。 */
+const CONTACTS = [
+  {
+    name: "稲美町社会福祉協議会",
+    tel: "079-492-8668",
+    note: "家計のこと全般の相談。どこに相談すればいいか分からないときも、まずこちらへ。生活福祉資金の貸付・フードバンクの相談もできます。"
+  },
+  {
+    name: "稲美町役場 地域福祉課 地域福祉係",
+    tel: "079-492-9136",
+    note: "生活にお困りのときの相談（生活困窮・生活保護の相談・住居確保給付金）。"
+  },
+  {
+    name: "法テラス・サポートダイヤル",
+    tel: "0570-078374",
+    note: "借金・多重債務など法律のこまりごとの案内（平日9時〜21時・土曜9時〜17時）。IP電話からは 03-6745-5600。収入が少ない方は無料の法律相談を使える場合があります。"
+  }
+];
+
+/* --- ② 支出の「めやす」割合（収入に対する％の上限めやす） --------------------
+   ※公的な基準ではなく、家計相談で一般によく使われるめやすです。
+     画面にも「公的基準ではありません」と表示されます。 */
+const GUIDELINES = {
+  housing:   { label: "住居費",             max: 30 },
+  food:      { label: "食費",               max: 25 },
+  utility:   { label: "水道光熱費",         max: 8 },
+  comm:      { label: "通信費",             max: 6 },
+  insurance: { label: "保険料（民間）",     max: 6 },
+  car:       { label: "車の費用",           max: 12 },
+  social:    { label: "交際費・娯楽など",   max: 10 },
+  debt:      { label: "借金の返済",         max: 20 }
+};
+
+/* --- ③ 危険サインのしきい値 ------------------------------------------------ */
+const THRESHOLDS = {
+  debtRatioCaution: 20,   // 返済が収入の20%以上 → 注意
+  debtRatioDanger: 30,    // 返済が収入の30%以上 → 危険
+  debtCountDanger: 3,     // 借入先3か所以上 → 多重債務のおそれ
+  savingsMonthsCaution: 3,// 貯金が生活費3か月分未満 → 注意
+  savingsMonthsDanger: 1, // 貯金が生活費1か月分未満 → 危険
+  lowIncomeSingle: 95000, // 単身でこの額未満 → 生活保護等の案内（控えめな額に設定）
+  lowIncomeMulti: 130000  // 2人以上でこの額未満 → 生活保護等の案内（控えめな額に設定）
+};
+
+/* --- ④ 生活保護のめやす（参考表） -------------------------------------------
+   くらしの相談ナビと同じ根拠：厚生労働省 令和8年4月からの生活扶助基準による
+   計算例（稲美町＝3級地-1）＋兵庫県3級地の住宅扶助上限。
+   基準は改定されることがあるため、年度替わりに要点検。 */
+const SEIHO_EXAMPLES = [
+  { setai: "65〜69歳のひとり暮らし", seikatsu: "約7.0万円" },
+  { setai: "75歳以上のひとり暮らし", seikatsu: "約6.4万円" },
+  { setai: "30代の母親＋4歳のお子さん", seikatsu: "約13.7万円" },
+  { setai: "障がいのある方のひとり暮らし（障害者加算あり）", seikatsu: "約9.4万円" }
+];
+const SEIHO_JUTAKU = "家賃がある場合はさらに住宅扶助（上限のめやす：単身32,300円・2人世帯39,000円・3〜5人世帯42,000円）が加わります。";
+
+/* --- ⑤ 収入・支出の入力項目 ------------------------------------------------- */
+const INCOME_FIELDS = [
+  { id: "inc_salary_self",   label: "給与（本人）",                hint: "手取り額" },
+  { id: "inc_salary_family", label: "給与（配偶者・家族）",        hint: "手取り額の合計" },
+  { id: "inc_pension",       label: "年金",                        hint: "1か月あたりに直した額" },
+  { id: "inc_teate",         label: "手当（児童手当・児童扶養手当など）", hint: "1か月あたりに直した額" },
+  { id: "inc_youikuhi",      label: "養育費",                      hint: "" },
+  { id: "inc_other",         label: "仕送り・その他の収入",        hint: "" }
+];
+
+const EXPENSE_FIELDS = [
+  { id: "ex_housing",   label: "住居費（家賃・住宅ローン）", gkey: "housing",   hint: "共益費・管理費も含めて" },
+  { id: "ex_food",      label: "食費",                       gkey: "food",      hint: "外食・お弁当代も含めて" },
+  { id: "ex_utility",   label: "水道・電気・ガス",           gkey: "utility",   hint: "" },
+  { id: "ex_comm",      label: "通信費（携帯・ネット）",     gkey: "comm",      hint: "端末の分割代も含めて" },
+  { id: "ex_insurance", label: "保険料（民間の保険）",       gkey: "insurance", hint: "生命保険・医療保険・学資保険など" },
+  { id: "ex_car",       label: "車の費用",                   gkey: "car",       hint: "ガソリン・駐車場・自動車保険など" },
+  { id: "ex_edu",       label: "教育費",                     gkey: null,        hint: "学費・給食費・塾・習いごとなど" },
+  { id: "ex_medical",   label: "医療費・介護費",             gkey: null,        hint: "" },
+  { id: "ex_daily",     label: "日用品・衣類",               gkey: null,        hint: "" },
+  { id: "ex_social",    label: "交際費・娯楽・し好品",       gkey: "social",    hint: "たばこ・お酒・趣味なども" },
+  { id: "ex_tax",       label: "税金・国保・年金の支払い",   gkey: null,        hint: "給与から引かれていない、自分で納めている分" },
+  { id: "ex_debt",      label: "借金の返済（毎月の額）",     gkey: "debt",      hint: "リボ払い・奨学金の返還も含めて" },
+  { id: "ex_other",     label: "その他の支出",               gkey: null,        hint: "" }
+];
+
+/* 円グラフの色（支出13項目分） */
+const PIE_COLORS = ["#2a6f8f","#e0813f","#2e7d5b","#b5533c","#6a5fa3","#c9a227",
+                    "#4a90a4","#8a6d4f","#5b8c5a","#c26565","#7a7a52","#4f6d8a","#9b8ba5"];
+
+/* ===========================================================================
+   ★★★ 編集ゾーン ここまで ★★★（これより下はプログラム部分）
+   =========================================================================== */
+
+/* ---------- 共通ユーティリティ ---------- */
+function yen(n){ return n.toLocaleString("ja-JP") + "円"; }
+function esc(s){
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+/* 金額入力の読み取り：空欄・数字以外は null（＝未入力扱い） */
+function readYen(id){
+  const el = document.getElementById(id);
+  if(!el) return null;
+  const raw = el.value.replace(/[，,、\s円]/g,"").replace(/[０-９]/g, d => String.fromCharCode(d.charCodeAt(0)-0xFEE0));
+  if(raw === "") return null;
+  const n = parseInt(raw, 10);
+  if(isNaN(n) || n < 0) return null;
+  return n;
+}
+
+/* ---------- 初期化 ---------- */
+function init(){
+  document.querySelectorAll(".js-asof").forEach(e => e.textContent = "掲載内容：" + DATA_ASOF + " 時点");
+  document.querySelectorAll(".js-asof-date").forEach(e => e.textContent = DATA_ASOF);
+
+  const incWrap = document.getElementById("incomeFields");
+  INCOME_FIELDS.forEach(f => incWrap.insertAdjacentHTML("beforeend", fieldHTML(f)));
+  const exWrap = document.getElementById("expenseFields");
+  EXPENSE_FIELDS.forEach(f => exWrap.insertAdjacentHTML("beforeend", fieldHTML(f)));
+
+  document.querySelectorAll("input.yen").forEach(inp => {
+    inp.addEventListener("input", updateSubtotals);
+  });
+  document.querySelectorAll(".chk input").forEach(c => {
+    c.addEventListener("change", () => c.closest(".chk").classList.toggle("checked", c.checked));
+  });
+  updateSubtotals();
+}
+function fieldHTML(f){
+  return '<div class="field"><label for="'+f.id+'">'+esc(f.label)+
+    (f.hint ? ' <span class="hint">'+esc(f.hint)+'</span>' : '')+
+    '</label><div class="yen-wrap"><input type="text" class="yen" id="'+f.id+
+    '" inputmode="numeric" placeholder="例）30000"><span class="yen-unit">円/月</span></div></div>';
+}
+function updateSubtotals(){
+  const inc = sumFields(INCOME_FIELDS);
+  const ex  = sumFields(EXPENSE_FIELDS);
+  document.getElementById("incomeSubtotal").textContent =
+    inc.count ? "収入の合計：" + yen(inc.total) + "／月" : "収入の合計：未入力";
+  document.getElementById("expenseSubtotal").textContent =
+    ex.count ? "支出の合計：" + yen(ex.total) + "／月" : "支出の合計：未入力";
+}
+function sumFields(fields){
+  let total = 0, count = 0;
+  fields.forEach(f => {
+    const v = readYen(f.id);
+    if(v !== null){ total += v; count++; }
+  });
+  return { total, count };
+}
+
+/* ---------- 画面切り替え ---------- */
+function showPanel(id){
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("show","show-print"));
+  const p = document.getElementById(id);
+  p.classList.add("show");
+  if(id === "panelReport") p.classList.add("show-print");
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function backToInput(){ showPanel("panelInput"); }
+
+/* ---------- データ収集 ---------- */
+let D = null; // 診断データ（最後に診断したときの入力内容）
+
+function collectData(){
+  const getSel = id => document.getElementById(id).value;
+  const selText = id => {
+    const el = document.getElementById(id);
+    return el.value === "" ? null : el.options[el.selectedIndex].text;
+  };
+  const incomes = INCOME_FIELDS.map(f => ({...f, value: readYen(f.id)}));
+  const expenses = EXPENSE_FIELDS.map(f => ({...f, value: readYen(f.id)}));
+  const arrears = [...document.querySelectorAll(".arrears:checked")].map(c => c.value);
+  const arrearsLabels = [...document.querySelectorAll(".arrears:checked")].map(c => c.closest(".chk").innerText.trim());
+  const debtTypes = [...document.querySelectorAll(".debtType:checked")].map(c => c.value);
+
+  const incEntered = incomes.filter(i => i.value !== null);
+  const exEntered  = expenses.filter(e => e.value !== null);
+
+  return {
+    hhSize: getSel("hhSize") === "" ? null : parseInt(getSel("hhSize"),10),
+    hhSizeText: selText("hhSize"),
+    kids: getSel("kids") === "" ? null : parseInt(getSel("kids"),10),
+    kidsText: selText("kids"),
+    housingType: getSel("housingType") || null,
+    housingTypeText: selText("housingType"),
+    workStatus: getSel("workStatus") || null,
+    workStatusText: selText("workStatus"),
+    flags: {
+      singleParent: document.getElementById("fSingleParent").checked,
+      elderly: document.getElementById("fElderly").checked,
+      disability: document.getElementById("fDisability").checked,
+      illness: document.getElementById("fIllness").checked
+    },
+    incomes, expenses, incEntered, exEntered,
+    incomeTotal: incEntered.reduce((s,i)=>s+i.value,0),
+    expenseTotal: exEntered.reduce((s,e)=>s+e.value,0),
+    hasIncome: incEntered.length > 0,
+    hasExpense: exEntered.length > 0,
+    debtTotal: readYen("debtTotal"),
+    debtCount: getSel("debtCount") === "" ? null : parseInt(getSel("debtCount"),10),
+    debtTypes,
+    yamikin: document.getElementById("dtYamikin").checked,
+    arrears, arrearsLabels,
+    savings: readYen("savings"),
+    freeText: document.getElementById("freeText").value.trim()
+  };
+}
+
+/* ---------- 診断本体 ---------- */
+function runDiagnosis(){
+  D = collectData();
+  const out = [];
+
+  const anyInput = D.hasIncome || D.hasExpense || D.debtTotal !== null || D.debtCount !== null ||
+                   D.arrears.length > 0 || D.savings !== null || D.debtTypes.length > 0;
+  if(!anyInput){
+    out.push('<div class="flag info"><span class="ft">まだ入力がありません</span>' +
+      '金額やチェックをひとつでも入力すると、その範囲で診断できます。入力しづらい場合は、そのまま社協（079-492-8668）へお電話いただいてもかまいません。</div>');
+    document.getElementById("resultBody").innerHTML = out.join("");
+    renderContacts();
+    showPanel("panelResult");
+    return;
+  }
+
+  /* --- 収支サマリー --- */
+  if(D.hasIncome || D.hasExpense){
+    const balance = D.incomeTotal - D.expenseTotal;
+    const both = D.hasIncome && D.hasExpense;
+    out.push('<div class="sum-cards">');
+    out.push('<div class="sum-card"><div class="t">毎月の収入（入力分）</div><div class="v">' + (D.hasIncome ? yen(D.incomeTotal) : "未入力") + '</div></div>');
+    out.push('<div class="sum-card"><div class="t">毎月の支出（入力分）</div><div class="v">' + (D.hasExpense ? yen(D.expenseTotal) : "未入力") + '</div></div>');
+    if(both){
+      const cls = balance < 0 ? "deficit" : "surplus";
+      out.push('<div class="sum-card '+cls+'"><div class="t">毎月の収支</div><div class="v">' + (balance>=0?"+":"−") + yen(Math.abs(balance)).replace("円","") + '円</div></div>');
+    } else {
+      out.push('<div class="sum-card"><div class="t">毎月の収支</div><div class="v" style="font-size:16px;color:var(--sub);">収入と支出の両方を入力すると表示されます</div></div>');
+    }
+    out.push('</div>');
+    if(both) out.push(barChartHTML(D.incomeTotal, D.expenseTotal));
+  }
+
+  /* --- 支出内訳 円グラフ --- */
+  if(D.exEntered.length >= 2){
+    out.push(pieChartHTML(D.exEntered, D.expenseTotal));
+  }
+
+  /* --- めやす比較 --- */
+  if(D.hasIncome && D.incomeTotal > 0){
+    const gItems = D.exEntered.filter(e => e.gkey && GUIDELINES[e.gkey]);
+    if(gItems.length > 0) out.push(guidelineHTML(gItems, D.incomeTotal));
+  }
+
+  /* --- 危険サイン --- */
+  const flags = buildFlags(D);
+  if(flags.length > 0){
+    out.push('<h2 class="q" style="font-size:20px;">🔎 家計のチェック結果</h2>');
+    flags.forEach(f => {
+      out.push('<div class="flag '+f.level+'"><span class="ft">'+f.icon+' '+esc(f.title)+'</span>'+f.body+'</div>');
+    });
+  }
+
+  /* --- 生活保護のめやす（参考） --- */
+  out.push(seihoHTML());
+
+  /* --- 方針案 --- */
+  const plans = buildPlans(D, flags);
+  if(plans.length > 0){
+    out.push('<h2 class="q" style="font-size:20px;">🧭 これからの方針案（参考）</h2>');
+    out.push('<p class="lead">緊急度の高い順に並べています。ぜんぶを一度にやる必要はありません。<b>迷ったら、まず社協にお電話ください。</b></p>');
+    plans.forEach((p,i) => {
+      out.push('<div class="plan"><h4><span class="pr p'+p.pr+'">'+p.prLabel+'</span>'+(i+1)+'. '+esc(p.title)+'</h4>'+p.body+
+        (p.win ? '<div class="win">🏢 相談先：'+p.win+'</div>' : '')+'</div>');
+    });
+  }
+
+  /* --- 未入力項目の注記 --- */
+  const skipped = [];
+  if(!D.hasIncome) skipped.push("収入");
+  if(!D.hasExpense) skipped.push("支出");
+  if(D.debtTotal === null && D.debtCount === null && D.debtTypes.length === 0) skipped.push("借入れ");
+  if(D.savings === null) skipped.push("預貯金");
+  if(skipped.length > 0){
+    out.push('<div class="skipped-note">ℹ️ 今回の診断には「'+skipped.join("・")+'」の情報が含まれていません。入力すると、より具体的なヒントが表示できます（もちろん、このままでもかまいません）。</div>');
+  }
+
+  document.getElementById("resultBody").innerHTML = out.join("");
+  renderContacts();
+  showPanel("panelResult");
+}
+
+/* ---------- 危険サイン判定 ---------- */
+function buildFlags(D){
+  const flags = [];
+  const both = D.hasIncome && D.hasExpense;
+  const balance = D.incomeTotal - D.expenseTotal;
+
+  /* ヤミ金 */
+  if(D.yamikin){
+    flags.push({level:"danger", icon:"🚨", title:"ヤミ金かもしれない借入れがあります——今すぐ相談を",
+      body:"正規の登録がない業者からの借入れは、法律の上限を超える利息の場合、そもそも返す義務がないことがあります。<b>ひとりで返そうとせず、今すぐ法テラス（0570-078374）か警察、社協にご相談ください。</b>取り立てが怖いときも、相談すれば止める方法があります。"});
+  }
+  /* 家賃・住宅ローン滞納 */
+  if(D.arrears.includes("rent")){
+    flags.push({level:"danger", icon:"🏠", title:"家賃の滞納があります——住まいを守ることを最優先に",
+      body:"家賃の滞納が続くと住まいを失うおそれがあります。<b>大家さん・管理会社に早めに事情を伝えるとともに、「住居確保給付金」（家賃相当額の支給）が使える場合があります。</b>役場地域福祉課（079-492-9136）か社協にご相談ください。"});
+  }
+  if(D.arrears.includes("mortgage")){
+    flags.push({level:"danger", icon:"🏠", title:"住宅ローンの滞納があります",
+      body:"滞納が続く前に、<b>借入先の金融機関に返済条件の見直し（リスケジュール）を相談できます。</b>あわせて法テラスや社協にもご相談ください。放置がいちばん危険です。"});
+  }
+  /* ライフライン */
+  if(D.arrears.includes("utility")){
+    flags.push({level:"danger", icon:"💡", title:"水道・電気・ガスの滞納があります",
+      body:"止められる前に、<b>各事業者に分割払いなどの相談ができます。</b>また、生活の立て直しに公的な支援（貸付・生活保護など）が使える場合がありますので、社協・役場にご相談ください。"});
+  }
+  /* 収支 */
+  if(both && balance < 0){
+    flags.push({level:"danger", icon:"📉", title:"毎月約"+yen(Math.abs(balance))+"の赤字です",
+      body:"赤字が続くと、貯金の取り崩しや借入れにつながります。下の方針案を参考に、<b>「支出を減らす」「収入・給付を増やす」「借金を整理する」の3方向</b>から立て直しを考えましょう。ひとりで抱えず、家計の相談は社協で一緒にできます。"});
+  } else if(both && D.incomeTotal > 0 && balance >= 0 && balance < D.incomeTotal * 0.1){
+    flags.push({level:"caution", icon:"⚖️", title:"黒字ですが、余裕は少なめです（収支の差：約"+yen(balance)+"）",
+      body:"急な出費（家電の故障・医療費など）があると赤字になりやすい状態です。下の「めやすとの比較」で大きめの項目がないか確認してみてください。"});
+  } else if(both && balance >= 0){
+    flags.push({level:"ok", icon:"✅", title:"入力された範囲では、毎月約"+yen(balance)+"の黒字です",
+      body:"この調子で、黒字分を貯金や滞納の解消に回せると安心です。ボーナス月・出費の多い月も含めた年間で見ると、より正確になります。"});
+  }
+  /* 返済負担率 */
+  const debtPay = D.expenses.find(e => e.id === "ex_debt");
+  if(D.hasIncome && D.incomeTotal > 0 && debtPay && debtPay.value !== null && debtPay.value > 0){
+    const ratio = Math.round(debtPay.value / D.incomeTotal * 100);
+    if(ratio >= THRESHOLDS.debtRatioDanger){
+      flags.push({level:"danger", icon:"💳", title:"借金の返済が収入の約"+ratio+"％を占めています",
+        body:"一般に、<b>返済が収入の3割を超えると家計の維持がかなり難しい状態</b>とされます（公的基準ではなく一般的なめやす）。返済の見直し・債務整理を専門家に相談する段階です。法テラス・社協にご相談ください。"});
+    } else if(ratio >= THRESHOLDS.debtRatioCaution){
+      flags.push({level:"caution", icon:"💳", title:"借金の返済が収入の約"+ratio+"％を占めています",
+        body:"一般に、返済が収入の2割を超えると家計への負担が大きいとされます（公的基準ではなく一般的なめやす）。返済計画の見直しについて、早めの相談をおすすめします。"});
+    }
+  }
+  /* 多重債務 */
+  if(D.debtCount !== null && D.debtCount >= THRESHOLDS.debtCountDanger){
+    flags.push({level:"danger", icon:"🔁", title:"借入先が"+D.debtCount+"か所以上あります（多重債務のおそれ）",
+      body:"複数からの借入れは、返済のために借りる悪循環になりやすい状態です。<b>債務整理（任意整理・個人再生・自己破産など）で生活を立て直せる場合があります。</b>費用が心配な方も、法テラスの立替制度などがあります。まず相談を。"});
+  }
+  /* 税・国保 */
+  if(D.arrears.includes("tax") || D.arrears.includes("kokuho")){
+    flags.push({level:"caution", icon:"🏛️", title:"税金・国民健康保険料の滞納があります",
+      body:"放置すると延滞金や差押えにつながることがあります。<b>役場の担当窓口で「納付相談」をすると、分割払いなどの相談ができます。</b>払えない事情があることを早めに伝えるのが大切です。"});
+  }
+  /* 年金 */
+  if(D.arrears.includes("nenkin")){
+    flags.push({level:"caution", icon:"📮", title:"国民年金保険料の滞納があります",
+      body:"収入が少ないときは<b>保険料の「免除・納付猶予」の制度</b>があります。手続きをすれば未納扱いになりません。年金事務所または役場の窓口でご相談ください。"});
+  }
+  /* 携帯 */
+  if(D.arrears.includes("mobile")){
+    flags.push({level:"caution", icon:"📱", title:"携帯電話料金の滞納があります",
+      body:"端末代の分割払いを滞納すると、信用情報に記録され、今後ローンやクレジットカードが使えなくなることがあります。携帯会社への支払い相談と、料金プランの見直しを検討しましょう。"});
+  }
+  /* 学校関係 */
+  if(D.arrears.includes("school")){
+    flags.push({level:"caution", icon:"🎒", title:"学校関係の支払いの滞納があります",
+      body:"小・中学生のお子さんがいる世帯には、給食費や学用品費を援助する<b>「就学援助」の制度</b>があります。学校または町の教育委員会にご相談ください。"});
+  }
+  /* 貯金 */
+  if(D.savings !== null && D.hasExpense && D.expenseTotal > 0){
+    const months = D.savings / D.expenseTotal;
+    if(months < THRESHOLDS.savingsMonthsDanger){
+      flags.push({level:"danger", icon:"🏦", title:"預貯金が生活費1か月分を下回っています",
+        body:"急な出費で生活が立ち行かなくなるおそれがある状態です。<b>お金が尽きる前に相談するほど、使える選択肢が多くなります。</b>社協・役場に早めにご相談ください。"});
+    } else if(months < THRESHOLDS.savingsMonthsCaution){
+      flags.push({level:"caution", icon:"🏦", title:"預貯金が生活費"+Math.floor(months)+"か月分ほどです",
+        body:"一般に、生活費3か月分ほどの備えがあると安心とされます（一般的なめやす）。毎月少額でも先取りで貯める仕組みづくりを考えましょう。"});
+    }
+  }
+  /* 低収入 → 生活保護等の案内 */
+  if(D.hasIncome){
+    const single = D.hhSize === 1;
+    const multi = D.hhSize !== null && D.hhSize >= 2;
+    if((single && D.incomeTotal < THRESHOLDS.lowIncomeSingle) ||
+       (multi && D.incomeTotal < THRESHOLDS.lowIncomeMulti)){
+      flags.push({level:"info", icon:"🛟", title:"収入が生活保護のめやすを下回っている可能性があります",
+        body:"世帯の人数・年齢・家賃などによって基準は変わりますが、入力された収入は公的な支えの対象になる可能性がある水準です。下の<b>「生活保護のめやす（参考）」</b>とくらべてみてください。<b>生活保護は国民の権利です。</b>ためらわず、役場地域福祉課（079-492-9136）または社協にご相談ください。"});
+    }
+  }
+  /* 求職中 */
+  if(D.workStatus === "seeking"){
+    flags.push({level:"info", icon:"💼", title:"お仕事を探し中の方へ",
+      body:"ハローワークの職業紹介のほか、離職などで家賃の支払いが難しい場合は<b>「住居確保給付金」</b>、当面の生活費には<b>生活福祉資金の貸付</b>が使える場合があります。役場地域福祉課・社協にご相談ください。"});
+  }
+  return flags;
+}
+
+/* ---------- 方針案 ---------- */
+function buildPlans(D, flags){
+  const plans = [];
+  const hasDanger = flags.some(f => f.level === "danger");
+
+  /* 1. 緊急対応 */
+  if(D.yamikin || D.arrears.includes("rent") || D.arrears.includes("utility") || D.arrears.includes("mortgage")){
+    plans.push({pr:1, prLabel:"今すぐ",
+      title:"住まい・ライフライン・危険な借入れへの対応",
+      body:"<p>住まいを失うこと、電気・ガス・水道が止まること、違法な取り立ては、生活の土台を壊してしまいます。<b>ここだけは後回しにせず、今週中に一歩</b>（窓口への電話1本でOK）を踏み出しましょう。上の「チェック結果」の該当項目に、それぞれの対処法を書いています。</p>",
+      win:"社協 079-492-8668 ／ 役場地域福祉課 079-492-9136 ／ 法テラス 0570-078374"});
+  }
+  /* 2. 債務 */
+  const debtPay = D.expenses.find(e => e.id === "ex_debt");
+  const hasDebtIssue = (D.debtCount !== null && D.debtCount >= THRESHOLDS.debtCountDanger) ||
+    (D.hasIncome && D.incomeTotal>0 && debtPay && debtPay.value !== null && debtPay.value/D.incomeTotal >= THRESHOLDS.debtRatioCaution/100) ||
+    D.arrears.includes("debt");
+  if(hasDebtIssue){
+    plans.push({pr:1, prLabel:"早めに",
+      title:"借金の整理を専門家に相談する",
+      body:"<p>借金は、<b>法律にもとづく整理の方法（任意整理・個人再生・自己破産など）</b>で解決できる場合があります。「自己破産」という言葉は怖く聞こえますが、生活に必要なものは残せる、生活再建のための制度です。どの方法が合うかは専門家（弁護士・司法書士）の判断が必要です。</p><p>収入が少ない方は、<b>法テラスの無料法律相談・弁護士費用の立替え</b>を使える場合があります。社協に相談すれば、整理の前後の家計の立て直しも一緒に考えられます。</p>",
+      win:"法テラス・サポートダイヤル 0570-078374（平日9〜21時・土曜9〜17時）／ 社協 079-492-8668"});
+  }
+  /* 3. 滞納の納付相談 */
+  if(D.arrears.includes("tax") || D.arrears.includes("kokuho") || D.arrears.includes("nenkin") || D.arrears.includes("school") || D.arrears.includes("mobile")){
+    plans.push({pr:2, prLabel:"なるべく早く",
+      title:"滞納している支払いの「相談」をする",
+      body:"<p>滞納は、<b>払えない事情を早めに窓口へ伝えることがいちばんの対処法</b>です。分割払い・猶予・免除（年金保険料）・就学援助（学校関係）など、相談すれば使える仕組みがあります。逆に、連絡しないまま放置すると延滞金や差押えなど不利になっていきます。</p>",
+      win:"税金・国保 → 役場の担当課 ／ 年金 → 年金事務所 ／ どこに言えばいいか分からないとき → 社協 079-492-8668"});
+  }
+  /* 4. 支出の見直し */
+  if(D.hasIncome && D.incomeTotal > 0 && D.hasExpense){
+    const overs = D.exEntered.filter(e => e.gkey && GUIDELINES[e.gkey] &&
+      (e.value / D.incomeTotal * 100) > GUIDELINES[e.gkey].max)
+      .sort((a,b) => (b.value/D.incomeTotal - a.value/D.incomeTotal));
+    if(overs.length > 0){
+      const tips = {
+        comm: "格安プラン・格安SIMへの変更で月数千円下がることがあります。ショップよりも、まず現在の請求明細の確認から。",
+        insurance: "保障が重複していないか、収入に対して掛け金が大きすぎないかの点検を。共済など掛け金の軽い選択肢もあります。",
+        housing: "収入に対して住居費が重い状態です。公営住宅への住み替えや、住居確保給付金の対象にならないかの確認を。",
+        car: "任意保険の見直し、車検・ガソリンの節約のほか、台数を減らせないかの検討も（生活に車が必要な地域なので、手放す前に必ず窓口でご相談を）。",
+        food: "外食・中食の回数など、無理のない範囲での見直しを。食料支援（フードバンク）も利用できます。",
+        social: "つきあいの支出は削りすぎると孤立につながります。金額の上限を決める方法がおすすめです。",
+        debt: "返済そのものの見直し（債務整理・借り換え）を検討する段階かもしれません。",
+        utility: "電力・ガス会社やプランの見直し、契約アンペアの変更などで下がる場合があります。"
+      };
+      let body = "<p>収入に対する割合が「一般的なめやす」を超えている支出です（めやすは公的基準ではありません。ご家庭の事情によって適正な割合は変わります）。</p><ul>";
+      overs.slice(0,4).forEach(e => {
+        const pct = Math.round(e.value / D.incomeTotal * 100);
+        body += "<li><b>" + esc(e.label) + "</b>（" + yen(e.value) + "・収入の約" + pct + "％）" +
+          (tips[e.gkey] ? "：" + tips[e.gkey] : "") + "</li>";
+      });
+      body += "</ul><p>何をどれだけ削るかは、社協の家計相談で一緒に考えられます。<b>削ってはいけないもの（食事・医療・子どもの費用）を削らないこと</b>も大切です。</p>";
+      plans.push({pr:2, prLabel:"こつこつ", title:"大きめの支出から見直す", body, win:"社協 079-492-8668"});
+    }
+  }
+  /* 5. 収入・給付を増やす */
+  {
+    let items = [];
+    if(D.kids !== null && D.kids >= 1) items.push("児童手当（高校生年代まで）・就学援助");
+    if(D.flags.singleParent) items.push("児童扶養手当などのひとり親向けの支援");
+    if(D.flags.disability) items.push("障害年金・各種手当・医療費の軽減");
+    if(D.flags.elderly) items.push("年金の受給内容の確認・高齢者向けの負担軽減");
+    if(D.workStatus === "seeking" || D.workStatus === "parttime") items.push("ハローワークの職業紹介・職業訓練（訓練中の給付金もあります）");
+    items.push("生活福祉資金の貸付（緊急時の少額貸付など・社協が窓口）");
+    plans.push({pr:3, prLabel:"あわせて",
+      title:"もらえるはずの給付・手当を確認する",
+      body:"<p>支出を削るより先に、<b>受け取れる給付・手当の「もらい忘れ」がないかの確認</b>をおすすめします。可能性のあるもの：</p><ul>" +
+        items.map(i => "<li>"+esc(i)+"</li>").join("") +
+        "</ul><p>くわしくは、姉妹サイト<b>「くらしの相談ナビ」</b>（このページ下のリンク）で、該当する制度と窓口を調べられます。</p>",
+      win:"社協 079-492-8668（どの制度が使えそうか、一緒に整理できます）"});
+  }
+  /* 6. 生活保護 */
+  const lowIncome = flags.some(f => f.title.includes("生活保護のめやす"));
+  if(lowIncome){
+    plans.push({pr:1, prLabel:"ためらわず",
+      title:"生活保護の相談をする",
+      body:"<p>収入が国の定める最低生活費に届かないときは、その差額を補う<b>生活保護</b>を利用できる可能性があります。<b>働いていても、持ち家があっても、条件によっては利用できます。</b>生活保護は国民の権利であり、申請を恥じる必要はまったくありません。</p><p>稲美町の場合、相談は役場地域福祉課、実施機関は加古川健康福祉事務所です。社協から相談につなぐこともできます。</p>",
+      win:"役場地域福祉課 079-492-9136 ／ 社協 079-492-8668"});
+  }
+  /* 7. まず相談（常に最後に） */
+  plans.push({pr:3, prLabel:"いつでも",
+    title:"ひとりで抱え込まず、家計の相談をする",
+    body:"<p>家計の立て直しは、<b>お金の残りが少なくなる前に相談するほど選択肢が多い</b>のがいちばんの原則です。社協では、家計の状況を一緒に整理して、必要な制度・窓口につなぐお手伝いをしています。相談は無料で、秘密は守られます。</p><p>下の「相談シートを作る」ボタンで、今回の入力内容を印刷できる形にまとめられます。窓口にお持ちいただくと話が早く進みます。</p>",
+    win:"社協 079-492-8668（月〜金 8:30〜17:15）"});
+
+  return plans;
+}
+
+/* ---------- グラフ描画（SVG・外部ライブラリ不使用） ---------- */
+function barChartHTML(income, expense){
+  const max = Math.max(income, expense, 1);
+  const w = 100; // percent basis
+  const iw = Math.max(income / max * w, 2);
+  const ew = Math.max(expense / max * w, 2);
+  const exColor = expense > income ? "var(--danger)" : "var(--accent)";
+  return '<div class="chart-box"><h4>📊 収入と支出のバランス</h4>' +
+    '<div style="font-size:14px;margin-bottom:4px;">収入 ' + yen(income) + '</div>' +
+    '<div style="background:#eef3f6;border-radius:8px;overflow:hidden;height:34px;margin-bottom:12px;">' +
+    '<div style="width:'+iw+'%;height:100%;background:var(--blue);border-radius:8px 0 0 8px;"></div></div>' +
+    '<div style="font-size:14px;margin-bottom:4px;">支出 ' + yen(expense) + '</div>' +
+    '<div style="background:#eef3f6;border-radius:8px;overflow:hidden;height:34px;">' +
+    '<div style="width:'+ew+'%;height:100%;background:'+exColor+';border-radius:8px 0 0 8px;"></div></div>' +
+    '<p class="chart-note">※ 入力された項目だけの合計です。</p></div>';
+}
+
+function pieChartHTML(items, total){
+  if(total <= 0) return "";
+  const cx = 110, cy = 110, r = 95;
+  let angle = -90;
+  let paths = "";
+  const legend = [];
+  items.forEach((it, idx) => {
+    const frac = it.value / total;
+    const color = PIE_COLORS[idx % PIE_COLORS.length];
+    const pct = Math.round(frac * 1000) / 10;
+    legend.push('<div class="li"><span class="sw" style="background:'+color+';"></span>' +
+      esc(it.label) + '　' + yen(it.value) + '（' + pct + '％）</div>');
+    if(frac >= 0.9999){
+      paths += '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+color+'"/>';
+      return;
+    }
+    const a0 = angle * Math.PI / 180;
+    angle += frac * 360;
+    const a1 = angle * Math.PI / 180;
+    const x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0);
+    const x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
+    const large = frac > 0.5 ? 1 : 0;
+    paths += '<path d="M'+cx+' '+cy+' L'+x0.toFixed(1)+' '+y0.toFixed(1)+
+      ' A'+r+' '+r+' 0 '+large+' 1 '+x1.toFixed(1)+' '+y1.toFixed(1)+' Z" fill="'+color+'" stroke="#fff" stroke-width="1.5"/>';
+  });
+  return '<div class="chart-box"><h4>🥧 支出の内訳</h4>' +
+    '<div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;">' +
+    '<svg viewBox="0 0 220 220" width="200" height="200" role="img" aria-label="支出の内訳の円グラフ">' + paths + '</svg>' +
+    '<div class="legend" style="flex:1;min-width:240px;">' + legend.join("") + '</div></div>' +
+    '<p class="chart-note">※ 入力された項目だけで割合を計算しています。</p></div>';
+}
+
+function guidelineHTML(items, income){
+  let rows = "";
+  items.forEach(e => {
+    const g = GUIDELINES[e.gkey];
+    const pct = e.value / income * 100;
+    const pctR = Math.round(pct * 10) / 10;
+    const over = pct > g.max;
+    const wayOver = pct > g.max * 1.5;
+    const color = wayOver ? "var(--danger)" : (over ? "var(--caution)" : "var(--ok)");
+    const barMax = Math.max(g.max * 2, pct, 10); // 表示スケール
+    const vw = Math.min(pct / barMax * 100, 100);
+    const gw = Math.min(g.max / barMax * 100, 100);
+    rows += '<div style="margin-bottom:14px;">' +
+      '<div style="display:flex;justify-content:space-between;font-size:14px;">' +
+      '<span><b>' + esc(g.label) + '</b>　' + yen(e.value) + '</span>' +
+      '<span style="color:'+color+';font-weight:bold;">収入の約' + pctR + '％' + (over ? '（めやす超え）' : '') + '</span></div>' +
+      '<div style="position:relative;background:#eef3f6;border-radius:6px;height:20px;margin-top:3px;">' +
+      '<div style="width:'+vw+'%;height:100%;background:'+color+';border-radius:6px;opacity:.85;"></div>' +
+      '<div style="position:absolute;top:-3px;bottom:-3px;left:'+gw+'%;width:2px;background:#546a75;"></div>' +
+      '<div style="position:absolute;top:0;left:'+Math.min(gw+1,88)+'%;font-size:11px;color:#546a75;">めやす '+g.max+'％</div>' +
+      '</div></div>';
+  });
+  return '<div class="chart-box"><h4>📐 支出の割合と「めやす」の比較</h4>' + rows +
+    '<p class="chart-note">※ この「めやす」は公的な基準ではなく、家計相談で一般に使われるおおまかなめやすです。世帯の人数・事情によって適正な割合は変わります。めやすを超えている＝ただちに問題、ではありません。</p></div>';
+}
+
+/* ---------- 生活保護めやす表 ---------- */
+function seihoHTML(){
+  let rows = SEIHO_EXAMPLES.map(e =>
+    "<tr><td>"+esc(e.setai)+"</td><td>"+esc(e.seikatsu)+"</td></tr>").join("");
+  return '<details class="meyasu"><summary>🛟 生活保護のめやす（参考）——収入がこの水準を下回っていたら、ためらわず相談を</summary>' +
+    '<p style="font-size:15px;">生活保護は、世帯の収入が国の定める「最低生活費」に足りないとき、その差額を補う制度です。稲美町（3級地-1）での生活費部分（生活扶助）の計算例：</p>' +
+    '<table><tr><th>世帯の例</th><th>生活扶助のめやす（月額）</th></tr>' + rows + '</table>' +
+    '<p style="font-size:15px;">' + esc(SEIHO_JUTAKU) + '</p>' +
+    '<p class="src">出典：厚生労働省「生活保護制度における生活扶助基準額の算出方法（令和8年4月）」に基づく計算例、住宅扶助は兵庫県3級地の基準（' + DATA_ASOF + '時点）。実際の基準額は年齢・世帯構成・障がいの有無などで変わります。正確な判定は必ず窓口でご確認ください。</p>' +
+    '</details>';
+}
+
+/* ---------- 相談窓口 ---------- */
+function renderContacts(){
+  const box = document.getElementById("contactBox");
+  box.innerHTML = "<h3>📞 相談窓口（無料・秘密は守られます）</h3>" +
+    CONTACTS.map(c =>
+      '<div class="m-item"><b>'+esc(c.name)+'</b><span class="tel">'+esc(c.tel)+'</span><br><span class="note">'+esc(c.note)+'</span></div>'
+    ).join("");
+}
+
+/* ---------- 相談シート ---------- */
+function buildReport(){
+  if(!D) D = collectData();
+  const today = new Date();
+  const dateStr = today.getFullYear()+"年"+(today.getMonth()+1)+"月"+today.getDate()+"日";
+  let h = "";
+  h += "<h3>家計相談シート（くらしの家計ナビ）</h3>";
+  h += "<p style='font-size:13px;'>作成日："+dateStr+"／このシートはご本人がご自身で入力した内容です（未入力の項目は「—」）。</p>";
+
+  h += "<h3>1. 世帯のようす</h3><table>";
+  h += "<tr><th>世帯人数</th><td>"+(D.hhSizeText||"—")+"</td></tr>";
+  h += "<tr><th>18歳以下のお子さん</th><td>"+(D.kidsText||"—")+"</td></tr>";
+  h += "<tr><th>住まい</th><td>"+(D.housingTypeText||"—")+"</td></tr>";
+  h += "<tr><th>働き方（本人）</th><td>"+(D.workStatusText||"—")+"</td></tr>";
+  const ff = [];
+  if(D.flags.singleParent) ff.push("ひとり親世帯");
+  if(D.flags.elderly) ff.push("65歳以上の方がいる");
+  if(D.flags.disability) ff.push("障がいのある方がいる");
+  if(D.flags.illness) ff.push("病気療養中の方がいる");
+  h += "<tr><th>該当事項</th><td>"+(ff.length?ff.join("・"):"—")+"</td></tr></table>";
+
+  h += "<h3>2. 毎月の収入（手取り）</h3><table>";
+  D.incomes.forEach(i => { h += "<tr><th>"+esc(i.label)+"</th><td>"+(i.value!==null?yen(i.value):"—")+"</td></tr>"; });
+  h += "<tr><th>収入合計（入力分）</th><td><b>"+(D.hasIncome?yen(D.incomeTotal):"—")+"</b></td></tr></table>";
+
+  h += "<h3>3. 毎月の支出</h3><table>";
+  D.expenses.forEach(e => { h += "<tr><th>"+esc(e.label)+"</th><td>"+(e.value!==null?yen(e.value):"—")+"</td></tr>"; });
+  h += "<tr><th>支出合計（入力分）</th><td><b>"+(D.hasExpense?yen(D.expenseTotal):"—")+"</b></td></tr></table>";
+
+  if(D.hasIncome && D.hasExpense){
+    const bal = D.incomeTotal - D.expenseTotal;
+    h += "<p><b>毎月の収支（入力分）："+(bal>=0?"+":"−")+yen(Math.abs(bal))+"</b></p>";
+  }
+
+  h += "<h3>4. 借入れ・滞納・貯金</h3><table>";
+  h += "<tr><th>借金の残高（概算）</th><td>"+(D.debtTotal!==null?yen(D.debtTotal):"—")+"</td></tr>";
+  h += "<tr><th>借入先の数</th><td>"+(D.debtCount!==null?(D.debtCount===0?"借入れなし":D.debtCount+"か所"+(D.debtCount>=5?"以上":"")):"—")+"</td></tr>";
+  h += "<tr><th>借入れの種類</th><td>"+(D.debtTypes.length?D.debtTypes.map(esc).join("・"):"—")+"</td></tr>";
+  h += "<tr><th>滞納しているもの</th><td>"+(D.arrearsLabels.length?D.arrearsLabels.map(esc).join("・"):"—")+"</td></tr>";
+  h += "<tr><th>預貯金（概算）</th><td>"+(D.savings!==null?yen(D.savings):"—")+"</td></tr></table>";
+
+  if(D.freeText){
+    h += "<h3>5. 困っていること・気になること（本人記入）</h3><p>"+esc(D.freeText).replace(/\n/g,"<br>")+"</p>";
+  }
+
+  h += "<p style='font-size:12px;color:#666;'>※このシートは「くらしの家計ナビ」（稲美町社会福祉協議会・"+DATA_ASOF+"時点）で本人が作成したものです。ナビの診断結果は参考情報であり、内容の確認は相談員が行ってください。</p>";
+  h += '<div class="staff-box"><span class="st">【職員記入欄】受付日・対応者・聞き取り事項・つなぎ先など</span><div class="staff-lines"></div></div>';
+
+  document.getElementById("reportArea").innerHTML = h;
+  showPanel("panelReport");
+}
+
+function copyReport(){
+  const text = document.getElementById("reportArea").innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    document.getElementById("copyMsg").style.display = "block";
+  }).catch(() => {
+    alert("自動コピーができませんでした。画面の文章を長押し（または右クリック）でコピーしてください。");
+  });
+}
+
+init();
+</script>
+</body>
+</html>
