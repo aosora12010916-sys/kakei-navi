@@ -642,15 +642,91 @@ function yen(n){ return n.toLocaleString("ja-JP") + "円"; }
 function esc(s){
   return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
-/* 金額入力の読み取り：空欄・数字以外は null（＝未入力扱い） */
+/* 金額入力の読み取り：空欄・数字以外は null（＝未入力扱い）
+   「15万」「百万」「1億2000万」のような日本語の位取り表現にも対応する */
 function readYen(id){
   const el = document.getElementById(id);
   if(!el) return null;
   const raw = el.value.replace(/[，,、\s円]/g,"").replace(/[０-９]/g, d => String.fromCharCode(d.charCodeAt(0)-0xFEE0));
   if(raw === "") return null;
-  const n = parseInt(raw, 10);
-  if(isNaN(n) || n < 0) return null;
-  return n;
+  const n = parseYenAmount(raw);
+  if(n === null || isNaN(n) || n < 0) return null;
+  return Math.round(n);
+}
+
+/* 入力中の金額欄に3桁区切りのカンマを表示する（1000 → 1,000）。
+   桁を見誤って一桁多く／少なく入れる間違いを防ぐための表示上の整形で、
+   計算には影響しない（readYen がカンマを取り除いてから読むため）。
+   ・数字だけで書かれているときにだけ整形する。「15万」のような日本語表記は
+     そのまま残す（parseYenAmount が解釈するため）。
+   ・空欄はそのままにする。空欄は「金額が分からない」という意味を持つので、
+     ここで 0 を補ってはいけない。
+   ・整形でカーソルが末尾に飛ばないよう、カーソルの前にある数字の個数を数えて
+     同じ位置に戻す。 */
+function toHalfWidth(s){
+  return s.replace(/[０-９]/g, d => String.fromCharCode(d.charCodeAt(0)-0xFEE0));
+}
+function formatYenField(el){
+  const raw = el.value;
+  const caret = el.selectionStart === null ? raw.length : el.selectionStart;
+  const digitsBeforeCaret = (toHalfWidth(raw.slice(0, caret)).match(/\d/g) || []).length;
+  let compact = toHalfWidth(raw).replace(/[，,\s]/g, "");
+  if(compact === "" || !/^\d+$/.test(compact)) return;
+  compact = compact.replace(/^0+(?=\d)/, "");   // 先頭の0を落とす（「0」単独は残す）
+  const formatted = compact.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  if(formatted === raw) return;
+  el.value = formatted;
+  let seen = 0, pos = formatted.length;
+  if(digitsBeforeCaret === 0){
+    pos = 0;
+  }else{
+    for(let i = 0; i < formatted.length; i++){
+      if(/\d/.test(formatted[i])) seen++;
+      if(seen === digitsBeforeCaret){ pos = i + 1; break; }
+    }
+  }
+  el.setSelectionRange(pos, pos);
+}
+
+/* 億・万・千・百・十を含む金額表現を数値に変換する。
+   例：「15万」→150000、「百万」→1000000（百×万の複合表現として正しく解釈）、
+       「1億2000万3000」→120003000、「1万5千」→15000
+   単位の前に数字がなければ「1」を補う（「百万」＝1×百×万）。
+   数字・小数点・億万千十百 以外の文字が混じっている場合は無効（null）として扱う。 */
+function parseYenAmount(raw){
+  if(!/^[\d.億万千百十]+$/.test(raw)) return null;
+  const bigUnit = { "億":100000000, "万":10000 };
+  const smallUnit = { "千":1000, "百":100, "十":10 };
+  let total = 0;   // 億・万で確定した合計
+  let small = 0;   // 万未満の部分の合計（千・百・十の合成＋単位なしの端数）
+  let matched = false;
+  let i = 0;
+  while(i < raw.length){
+    let numStr = "";
+    while(i < raw.length && /[\d.]/.test(raw[i])){ numStr += raw[i]; i++; }
+    const ch = raw[i];
+    if(ch === "億" || ch === "万"){
+      const base = numStr === "" ? 0 : parseFloat(numStr);
+      const groupValue = small + base;
+      total += (groupValue === 0 ? 1 : groupValue) * bigUnit[ch];
+      small = 0;
+      matched = true;
+      i++;
+    }else if(ch === "千" || ch === "百" || ch === "十"){
+      const n = numStr === "" ? 1 : parseFloat(numStr);
+      small += n * smallUnit[ch];
+      matched = true;
+      i++;
+    }else if(numStr !== ""){
+      small += parseFloat(numStr);
+      matched = true;
+    }else{
+      i++;
+    }
+  }
+  total += small;
+  if(!matched) return null;
+  return total;
 }
 
 /* ---------- 初期化 ---------- */
@@ -664,7 +740,7 @@ function init(){
   EXPENSE_FIELDS.forEach(f => exWrap.insertAdjacentHTML("beforeend", fieldHTML(f)));
 
   document.querySelectorAll("input.yen").forEach(inp => {
-    inp.addEventListener("input", updateSubtotals);
+    inp.addEventListener("input", () => { formatYenField(inp); updateSubtotals(); });
   });
   document.querySelectorAll(".chk input").forEach(c => {
     c.addEventListener("change", () => c.closest(".chk").classList.toggle("checked", c.checked));
