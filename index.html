@@ -13,6 +13,8 @@
     ・ブラウザ（Edge / Chrome / Safari など）でこのファイルを開くだけで動きます。
     ・インターネット接続やインストールは不要です。
     ・入力した金額・チェックはどこにも送信されません（この画面の中だけで計算します）。
+    ・利用回数の匿名カウンター（★編集ゾーンの TRACK）だけは、設定すると社協へ
+      「画面を開いた」「診断した」等の回数を送ります。入力内容は含みません。
 
   ■ 編集方法（坂口さん向け）
     ・掲載時点・連絡先・めやすの数字は、下の「★編集ゾーン」にまとめてあります。
@@ -45,6 +47,41 @@
     --radius:14px;
   }
   *{box-sizing:border-box;}
+
+  /* ===== 特例貸付モード（?t=1 または画面のボタンでオン） ===== */
+  .tokurei-only{display:none;}
+  body.tokurei-on .tokurei-only{display:block;}
+  .tk-switch-wrap{
+    background:#fff;border:2px solid var(--blue);border-radius:var(--radius);
+    padding:14px 16px;margin:0 0 18px;
+  }
+  button.tk-switch{
+    display:block;width:100%;text-align:left;cursor:pointer;
+    font-family:inherit;font-size:17px;line-height:1.6;
+    background:var(--blue-light);color:var(--blue-dark);
+    border:1px solid var(--blue);border-radius:10px;padding:12px 14px;
+  }
+  button.tk-switch:hover{background:#d9e9f0;}
+  body.tokurei-on button.tk-switch{background:var(--ok-bg);border-color:var(--ok);color:#1f5c42;}
+  .tk-switch-note{font-size:14px;color:var(--sub);margin:8px 2px 0;}
+  .sec.tokurei-only{border-left:6px solid var(--blue);}
+  .tk-box{
+    background:var(--blue-light);border:2px solid var(--blue);
+    border-radius:var(--radius);padding:16px 18px;margin:16px 0;
+  }
+  .tk-box.hit{background:var(--ok-bg);border-color:var(--ok);}
+  .tk-box h4{margin:0 0 8px;font-size:19px;color:var(--blue-dark);}
+  .tk-box.hit h4{color:#1f5c42;}
+  .tk-box .big-tel{
+    display:inline-block;font-size:26px;font-weight:bold;letter-spacing:.5px;
+    color:var(--blue-dark);text-decoration:none;margin:4px 0;
+  }
+  /* 電話番号のタップ発信（スマートフォン） */
+  a.tel-link{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;}
+  a.tel-link:hover{text-decoration:underline;}
+  /* 入力の途中に置く「ここまでで診断する」ボタン */
+  .mid-diag{margin:0 0 22px;}
+  .mid-diag p{font-size:13px;color:var(--sub);margin:6px 0 0;text-align:center;}
   html,body{margin:0;padding:0;}
   body{
     font-family:"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",system-ui,sans-serif;
@@ -306,8 +343,15 @@
       <li><b>診断結果について、稲美町社会福祉協議会は責任を負いかねます。</b>結果をそのまま信頼してご利用になったことで生じた損害についても、当会は責任を負いかねます（補償はいたしかねます）。大切な判断（借金の整理、契約の解約、住まいの変更など）をされる前に、<b>必ず社会福祉協議会・役場・法テラスなどの相談窓口や専門職にご相談ください。</b></li>
       <li>掲載している制度・金額のめやすは<b><span class="js-asof-date"></span>時点</b>のものです。制度の内容・金額は変わることがあります。</li>
       <li><b>入力はすべて任意です。</b>わかる項目・入力してもよい項目だけで診断できます（入力しなかった項目は診断に含まれません）。</li>
-      <li><b>プライバシーについて：</b>この画面に入力した金額・チェック・自由記述は、外部に送信されず、どこにも保存されません。すべてお使いの端末の中だけで計算され、画面を閉じると消えます。なお、サイトの閲覧にあたっては、一般的なホームページと同様に、サーバー提供元（GitHub社）にアクセス記録（IPアドレス・閲覧日時など）が残りますが、そこに入力内容は含まれません。</li>
+      <li><b>プライバシーについて：</b>この画面に入力した<b>金額・チェック・自由記述は、外部に送信されず、どこにも保存されません</b>。すべてお使いの端末の中だけで計算され、画面を閉じると消えます。<br>
+        ただし、このサイトがどれくらい使われているかを知るために、<b>「画面が開かれた」「診断ボタンが押された」といった出来事の回数だけ</b>を、当会（稲美町社会福祉協議会）へ記録として送っています。<b>送るのは出来事の名前と、その訪問かぎりの使い捨ての番号・スマートフォンかパソコンかの区別だけ</b>で、入力された内容やお名前・ご住所など個人を特定できる情報は一切含みません。この記録から個人をたどることはできません。<br>
+        なお、サイトの閲覧にあたっては、一般的なホームページと同様に、サーバー提供元（GitHub社）にアクセス記録（IPアドレス・閲覧日時など）が残りますが、そこにも入力内容は含まれません。</li>
     </ul>
+  </div>
+
+  <div class="tk-switch-wrap no-print" id="tokureiSwitchWrap">
+    <button type="button" class="tk-switch" id="tokureiSwitch" aria-pressed="false" onclick="toggleTokurei()"></button>
+    <p class="tk-switch-note">社協からお借りになった<b>緊急小口資金・総合支援資金</b>（新型コロナウイルスの特例貸付）について、返済・免除の項目とご案内を追加して診断します。借りていない方は閉じてお使いください。</p>
   </div>
 
   <!-- ===== 入力画面 ===== -->
@@ -396,10 +440,15 @@
       <div class="subtotal" id="expenseSubtotal">支出の合計：未入力</div>
     </div>
 
+    <div class="mid-diag no-print">
+      <button class="act wide" onclick="runDiagnosis()">📊 ここまでの内容で診断する</button>
+      <p>収入と支出だけでも診断できます。この先の「借入れ・貯金」は、答えられる範囲でかまいません。<br>入力した金額・記述はどこにも送信されません。</p>
+    </div>
+
     <!-- ④ 借入・滞納・貯金 -->
     <div class="sec">
       <div class="sec-head"><span class="num">4</span><h3>借入れ・支払いの遅れ・貯金</h3></div>
-      <p class="sec-note">答えにくい項目かもしれませんが、家計の立て直しにいちばん大切な情報です。<b>借金や滞納がない場合は「0」のまま・チェックなしで</b>かまいません。入力内容はどこにも送信されません。</p>
+      <p class="sec-note">答えにくい項目かもしれませんが、家計の立て直しにいちばん大切な情報です。<b>借金や滞納がない場合は「0」のまま・チェックなしで</b>かまいません。入力した金額・チェックはどこにも送信されません。</p>
       <div class="field-grid">
         <div class="field">
           <label for="debtTotal">借金の残高（合計・だいたいで）<span class="hint">住宅ローン以外の借入れ・リボ払い残高など</span></label>
@@ -453,6 +502,54 @@
       </div>
     </div>
 
+    <!-- ＋ 社協の特例貸付（コロナ）＝特例貸付モードのときだけ表示 -->
+    <div class="sec tokurei-only" id="secTokurei">
+      <div class="sec-head"><span class="num">＋</span><h3>社協の特例貸付（コロナ）について</h3></div>
+      <p class="sec-note">令和2年〜4年ごろに社会福祉協議会からお借りいただいた<b>緊急小口資金・総合支援資金（新型コロナウイルスの特例貸付）</b>についてうかがいます。この貸付には<b>返さなくてよくなる「償還免除」</b>や、<b>返済額を下げる・待ってもらう</b>しくみがあります。あてはまりそうかどうかの<b>目安</b>をお伝えします。わからない項目は空欄・未選択のままでかまいません。</p>
+      <div class="field-grid">
+        <div class="field">
+          <label for="tkUse">特例貸付を借りていますか</label>
+          <select id="tkUse">
+            <option value="">選択しない</option>
+            <option value="yes">借りている（返済中・据置中・滞納中をふくむ）</option>
+            <option value="done">借りたが、すでに返し終わった</option>
+            <option value="menjo">借りたが、免除になった</option>
+            <option value="no">借りていない</option>
+            <option value="unknown">わからない</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="tkStatus">いまの返済の状況</label>
+          <select id="tkStatus">
+            <option value="">選択しない</option>
+            <option value="paying">返済している</option>
+            <option value="waiting">まだ返済が始まっていない・待ってもらっている</option>
+            <option value="arrears">返済が滞っている・払えていない</option>
+            <option value="unknown">わからない</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="tkBalance">特例貸付の残高（だいたいで）<span class="hint">わからなければ数字を消して空欄に</span></label>
+          <div class="yen-wrap"><input type="text" class="yen" id="tkBalance" inputmode="numeric" value="0"><span class="yen-unit">円</span></div>
+        </div>
+        <div class="field">
+          <label for="tkMonthly">特例貸付の毎月の返済額<span class="hint">③の「借金の返済」にもこの額を含めてご記入ください</span></label>
+          <div class="yen-wrap"><input type="text" class="yen" id="tkMonthly" inputmode="numeric" value="0"><span class="yen-unit">円/月</span></div>
+        </div>
+      </div>
+      <div style="margin-top:14px;">
+        <label style="font-size:15px;font-weight:bold;">「償還免除」にあてはまるかの確認（当てはまるものすべて）</label>
+        <p class="sec-note" style="margin:6px 0 8px;">国が定めた要件です。ひとつでも当てはまると、<b>残りを返さなくてよくなる</b>可能性があります。</p>
+        <div class="chk-grid" style="margin-top:8px;">
+          <label class="chk"><input type="checkbox" id="tkHikazei"><span>借りたご本人と世帯主の<b>どちらも住民税が非課税</b>（均等割・所得割ともにかからない）</span></label>
+          <label class="chk"><input type="checkbox" id="tkSeiho"><span><b>生活保護</b>を受けている／貸付を受けたあとに受けていたことがある</span></label>
+          <label class="chk"><input type="checkbox" id="tkShogai"><span><b>重い障害の手帳</b>をお持ち（身体1・2級／精神1級／療育A）</span></label>
+          <label class="chk"><input type="checkbox" id="tkDeath"><span>借りたご本人が<b>亡くなられた</b>（ご家族が入力している場合）</span></label>
+          <label class="chk"><input type="checkbox" id="tkFumei"><span>住民税が非課税かどうか<b>わからない</b></span></label>
+        </div>
+      </div>
+    </div>
+
     <!-- ⑤ 自由記述 -->
     <div class="sec">
       <div class="sec-head"><span class="num">5</span><h3>困っていること・気になること（自由記述）</h3></div>
@@ -462,7 +559,7 @@
 
     <div class="diag-bar no-print">
       <button class="act wide" onclick="runDiagnosis()">📊 ここまでの内容で診断する</button>
-      <p style="font-size:13px;color:var(--sub);margin:8px 0 0;text-align:center;">空欄の支出項目は全国平均をもとに補って診断します。入力内容はどこにも送信されません。</p>
+      <p style="font-size:13px;color:var(--sub);margin:8px 0 0;text-align:center;">空欄の支出項目は全国平均をもとに補って診断します。入力した金額・記述はどこにも送信されません。</p>
     </div>
   </section>
 
@@ -495,7 +592,7 @@
     <p class="lead no-print">この内容を印刷、またはPDFで保存して、社協などの窓口へお持ちください。最初から口頭で説明しなくても、職員が状況を把握できます。</p>
     <div id="reportArea"></div>
     <div class="btn-row no-print">
-      <button class="act" onclick="window.print()">🖨 印刷 / PDF保存</button>
+      <button class="act" onclick="track('print');window.print()">🖨 印刷 / PDF保存</button>
       <button class="act ghost" onclick="copyReport()">📋 文章をコピー</button>
       <button class="act ghost" onclick="backToInput()">入力にもどる</button>
     </div>
@@ -505,9 +602,9 @@
 </div>
 
 <footer class="site">
-  くらしの家計ナビ｜稲美町社会福祉協議会（TEL 079-492-8668）<br>
+  くらしの家計ナビ｜稲美町社会福祉協議会（TEL <a class="tel-link" href="tel:0794928668">079-492-8668</a>）<br>
   <span class="js-asof"></span><br>
-  ※この画面に入力した内容は外部に送信されません。<br>
+  ※この画面に入力した金額・記述は外部に送信されません（利用回数のみ当会が記録しています）。<br>
   ※本サイトの診断結果は参考情報であり、当会は結果に責任を負いかねます。<br>
   ※手続きや大切な判断の前に、必ず相談窓口・専門職にご確認ください。
 </footer>
@@ -520,6 +617,43 @@
 
 /* --- ⓪ 掲載内容の時点 ------------------------------------------------------ */
 const DATA_ASOF = "令和8年（2026年）7月";
+
+/* --- ⓪-2 利用状況の記録（カウンター） -------------------------------------
+   何人くらいが使ったかを社協側で把握するための、匿名の回数記録です。
+   ・記録先は社協のGoogleスプレッドシート（下のURLを差し替えて使います）。
+   ・送るのは「画面を開いた／診断した／相談シートを出した」といった
+     出来事の名前と、その訪問だけの使い捨てのID・端末の種別だけです。
+     入力された金額・チェック・自由記述は一切送りません（送る仕組みがありません）。
+   ・訪問IDはブラウザを閉じると消えます（同じ人を後から追いかけることはできません）。
+   ・endpoint が空のあいだは、何も送りません（設定するまでは無効のまま動きます）。
+   ・設定のしかたは「利用カウンター_設定手順.md」を見てください。 */
+const TRACK = {
+  enabled: true,
+  endpoint: "https://script.google.com/macros/s/AKfycbwyePssaVG_OD_uKaWP-tOkEEasz0mfyJqhI4SLKo1CoeCtO8LZukfcnt4Yb2A8jJ6x/exec",
+                           // ↑ 記録先＝gw-admin@inami-shakyo.or.jp のスプレッドシート
+                           //   「くらしの家計ナビ 利用記録」（2026-09-05 設定）
+  debug: false             // true にすると、送った内容をブラウザのコンソールに表示
+};
+
+/* --- ⓪-3 特例貸付モード ----------------------------------------------------
+   新型コロナウイルスの特例貸付（緊急小口資金・総合支援資金）を借りた方向けの
+   項目・診断・方針案を出すかどうか。
+   ・既定は false（＝一般向けの家計診断のまま。特例貸付の話は一切出ません）。
+   ・URLの末尾に ?t=1 を付けるとオンになります。
+       例）https://…/kakei-navi/?t=1
+     案内文書・はがきのQRコードにはこちらのURLを載せてください。
+   ・画面上のボタンでも切り替えられます。
+   ・defaultOn を true にすると、URLに関係なく常にオンになります。 */
+const TOKUREI = {
+  defaultOn: false,
+  showSwitchAlways: false,                 // 一般向けの画面にも切り替えボタンを出すか
+                                           //   false … 一般のURLは従来どおり（特例貸付の表示は一切なし）。
+                                           //           ?t=1 で来た方にだけ、閉じるためのボタンが出ます。
+                                           //   true  … 一般のURLにも「借りている方はこちら」ボタンを出します。
+  asof: "令和8年（2026年）9月",             // 特例貸付の記載内容を確認した時点
+  callcenter: "0120-552-039",              // 兵庫県社協 特例貸付コールセンター
+  callcenterNote: "平日9時〜17時（兵庫県社会福祉協議会 特例貸付コールセンター）"
+};
 
 /* --- ① 相談窓口 -------------------------------------------------------------
    確認済みの連絡先だけを載せています。変更があればここを書き換えてください。 */
@@ -729,6 +863,92 @@ function parseYenAmount(raw){
   return total;
 }
 
+/* ---------- 利用状況の記録（匿名カウンター） ------------------------------
+   何人くらいが使ったかを社協側で把握するためだけの記録です。
+   送るのは「どの出来事が起きたか」の名前と、その訪問限りの使い捨てID・端末の
+   種別・入口だけで、入力された金額・チェック・自由記述は一切含みません。
+   通信に失敗しても診断そのものには影響させません（黙って何もしません）。 */
+let VISIT_ID = null;
+function visitId(){
+  if(VISIT_ID) return VISIT_ID;
+  const make = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36).slice(-4);
+  try{
+    VISIT_ID = sessionStorage.getItem("kn_vid");
+    if(!VISIT_ID){ VISIT_ID = make(); sessionStorage.setItem("kn_vid", VISIT_ID); }
+  }catch(e){
+    /* プライベートモード等で保存できないときは、その場限りのIDを使う */
+    VISIT_ID = make();
+  }
+  return VISIT_ID;
+}
+/* 入口の区別（?from=letter のように付けると、案内文書から来た人を数えられる） */
+function trackFrom(){
+  try{
+    const v = new URLSearchParams(location.search).get("from") || "";
+    return v.replace(/[^0-9A-Za-z_-]/g, "").slice(0,32);
+  }catch(e){ return ""; }
+}
+const TRACK_EVENTS = ["open","diagnose","diagnose_empty","sheet","print","copy",
+                      "menjo_hit","mode_on","mode_off"];
+function track(ev){
+  try{
+    if(typeof TRACK === "undefined" || !TRACK.enabled || !TRACK.endpoint) return;
+    if(TRACK_EVENTS.indexOf(ev) < 0) return;
+    const payload = {
+      ev: ev,
+      mode: TOKUREI_ON ? "tokurei" : "normal",
+      from: trackFrom(),
+      dev: (window.innerWidth || 0) < 700 ? "sp" : "pc",
+      vid: visitId()
+    };
+    const body = JSON.stringify(payload);
+    if(TRACK.debug) console.log("[利用記録]", payload);
+    let sent = false;
+    if(navigator.sendBeacon){
+      sent = navigator.sendBeacon(TRACK.endpoint, new Blob([body], {type:"text/plain;charset=UTF-8"}));
+    }
+    if(!sent){
+      fetch(TRACK.endpoint, {method:"POST", mode:"no-cors", keepalive:true,
+        headers:{"Content-Type":"text/plain;charset=utf-8"}, body:body}).catch(()=>{});
+    }
+  }catch(e){ /* 記録できなくても診断は続ける */ }
+}
+
+/* ---------- 特例貸付モードの切り替え ---------- */
+let TOKUREI_ON = false;
+function initTokureiMode(){
+  let on = !!TOKUREI.defaultOn;
+  try{
+    const q = new URLSearchParams(location.search);
+    const v = q.get("t") !== null ? q.get("t") : q.get("tokurei");
+    if(v === "1") on = true;
+    if(v === "0") on = false;
+  }catch(e){}
+  applyTokureiMode(on);
+}
+function applyTokureiMode(on){
+  TOKUREI_ON = !!on;
+  document.body.classList.toggle("tokurei-on", TOKUREI_ON);
+  /* 一般向けの画面では、既定でボタンごと出さない（従来どおりの見た目にする） */
+  const wrap = document.getElementById("tokureiSwitchWrap");
+  if(wrap) wrap.style.display = (TOKUREI_ON || TOKUREI.showSwitchAlways) ? "" : "none";
+  const btn = document.getElementById("tokureiSwitch");
+  if(btn){
+    btn.setAttribute("aria-pressed", TOKUREI_ON ? "true" : "false");
+    btn.innerHTML = TOKUREI_ON
+      ? "✓ <b>社協の特例貸付（コロナ）についての項目を表示しています</b>　押すと閉じます"
+      : "＋ <b>社協の特例貸付（コロナ）を借りている方へ</b>　返済・免除の項目を追加する";
+  }
+}
+function toggleTokurei(){
+  applyTokureiMode(!TOKUREI_ON);
+  track(TOKUREI_ON ? "mode_on" : "mode_off");
+  if(TOKUREI_ON){
+    const el = document.getElementById("secTokurei");
+    if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
+  }
+}
+
 /* ---------- 初期化 ---------- */
 function init(){
   document.querySelectorAll(".js-asof").forEach(e => e.textContent = "掲載内容：" + DATA_ASOF + " 時点");
@@ -745,7 +965,9 @@ function init(){
   document.querySelectorAll(".chk input").forEach(c => {
     c.addEventListener("change", () => c.closest(".chk").classList.toggle("checked", c.checked));
   });
+  initTokureiMode();
   updateSubtotals();
+  track("open");
 }
 function fieldHTML(f){
   return '<div class="field"><label for="'+f.id+'">'+esc(f.label)+
@@ -873,8 +1095,95 @@ function collectData(){
     arrears, arrearsLabels,
     savings: savRaw === null ? 0 : savRaw,
     savingsBlank: savRaw === null,
+    tokurei: TOKUREI_ON ? readTokurei() : null,
     freeText: document.getElementById("freeText").value.trim()
   };
+}
+
+/* 特例貸付（コロナ）の入力を読む。特例貸付モードのときだけ呼ばれる。 */
+function readTokurei(){
+  const g = id => { const e = document.getElementById(id); return e ? e.value : ""; };
+  const c = id => { const e = document.getElementById(id); return !!(e && e.checked); };
+  const selText = id => {
+    const el = document.getElementById(id);
+    return (!el || el.value === "") ? null : el.options[el.selectedIndex].text;
+  };
+  const balRaw = readYen("tkBalance");
+  const monRaw = readYen("tkMonthly");
+  const t = {
+    use: g("tkUse"), useText: selText("tkUse"),
+    status: g("tkStatus"), statusText: selText("tkStatus"),
+    balance: balRaw === null ? 0 : balRaw, balanceBlank: balRaw === null,
+    monthly: monRaw === null ? 0 : monRaw, monthlyBlank: monRaw === null,
+    hikazei: c("tkHikazei"), seiho: c("tkSeiho"), shogai: c("tkShogai"),
+    death: c("tkDeath"), fumei: c("tkFumei")
+  };
+  /* 国の定める免除要件のいずれかに当てはまるか（＝目安。最終判定は県社協） */
+  t.menjoHit = t.hikazei || t.seiho || t.shogai || t.death;
+  t.any = t.use !== "" || t.status !== "" || t.balance > 0 || t.monthly > 0 ||
+          t.menjoHit || t.fumei;
+  t.active = t.any && t.use !== "no";
+  return t;
+}
+
+/* ---------- 特例貸付（コロナ）の診断ブロック ---------- */
+function tokureiHTML(D){
+  const T = D.tokurei;
+  if(!T || !T.any || T.use === "no") return "";
+  const cc = TOKUREI.callcenter;
+  const telBlock = '<p style="margin-top:12px;"><a class="big-tel" href="tel:' + esc(cc.replace(/-/g,"")) +
+    '">☎ ' + esc(cc) + '</a><br><span style="font-size:14px;color:var(--sub);">' +
+    esc(TOKUREI.callcenterNote) + '</span><br><span style="font-size:15px;">' +
+    'どこに聞けばよいか迷うときは、稲美町社協 <a class="tel-link" href="tel:0794928668">079-492-8668</a> でもおうかがいします。</span></p>';
+  const src = '<p style="font-size:13px;color:var(--sub);margin:10px 0 0;">※ ここに表示しているのは<b>目安</b>です。免除の要件・免除される額は、資金の種類（緊急小口資金／総合支援資金）や借りた時期によって異なり、<b>最終的な判定は兵庫県社会福祉協議会が行います</b>。すでに返済された分は免除の対象になりません。（' +
+    esc(TOKUREI.asof) + '時点。出典：兵庫県社会福祉協議会「新型コロナウイルス特例貸付 償還について」）</p>';
+
+  if(T.use === "menjo"){
+    return '<div class="tk-box hit"><h4>✅ 特例貸付は免除になっているとのことです</h4>' +
+      '<p>免除された分は、お返しいただく必要はありません。ほかの借入れや毎月の家計については、この下の診断結果をご覧ください。</p>' + src + '</div>';
+  }
+  if(T.use === "done"){
+    return '<div class="tk-box"><h4>🧾 特例貸付は返し終わっているとのことです</h4>' +
+      '<p>すでにお返しになった分は、あとから免除の対象にはなりません。いま生活が苦しいときは、貸付とは別に使える支援（食料支援・各種の減免・生活困窮者自立支援）があります。社協へご相談ください。</p>' + src + '</div>';
+  }
+
+  let h = '<div class="tk-box' + (T.menjoHit ? ' hit' : '') + '">';
+  h += '<h4>🧾 社協の特例貸付（緊急小口資金・総合支援資金）について</h4>';
+
+  if(T.menjoHit){
+    const why = [];
+    if(T.hikazei) why.push("借りたご本人と世帯主のどちらも住民税が非課税");
+    if(T.seiho)   why.push("生活保護を受けている／貸付を受けたあとに受けていたことがある");
+    if(T.shogai)  why.push("重い障害の手帳をお持ち（身体1・2級／精神1級／療育A）");
+    if(T.death)   why.push("借りたご本人が亡くなられた");
+    h += '<p><b style="font-size:20px;">返さなくてよくなる「償還免除」に当てはまる可能性があります。</b></p>' +
+      '<p>チェックいただいた次の点が、国の定める免除の要件にあたります。</p><ul>' +
+      why.map(w => "<li>" + esc(w) + "</li>").join("") + '</ul>' +
+      '<p><b>次の一歩：</b>下のコールセンターか社協へ「免除の対象になるか確認したい」とお電話ください。<b>免除には申請の手続きが必要です</b>（黙っていても自動では免除になりません）。</p>';
+  }else if(T.fumei){
+    h += '<p>住民税が非課税かどうかで、<b>返さなくてよくなる可能性</b>があります。借りたご本人と世帯主のどちらにも住民税（均等割・所得割）がかかっていなければ、免除の対象です。</p>' +
+      '<p><b>確かめ方：</b>役場から届く住民税の通知書で分かります。手元になければ、稲美町役場で「課税（非課税）証明書」を取ることもできます。判断が難しいときは、そのままお電話いただいてかまいません。</p>';
+  }else{
+    h += '<p>チェックいただいた範囲では、いまのところ免除の要件（住民税非課税・生活保護・重い障害の手帳など）には当てはまっていません。ただし<b>免除の判定は年度ごとの住民税の状況で行われます</b>。収入が減った年に当てはまることがありますので、状況が変わったときは改めてご相談ください。</p>';
+  }
+
+  if(T.monthly > 0 && D.incomeTotal > 0){
+    const pct = Math.round(T.monthly / D.incomeTotal * 1000) / 10;
+    h += '<p><b>返済の重さ：</b>特例貸付の返済は月' + yen(T.monthly) + '、手取り収入の約' + pct +
+      '％にあたります。この貸付は<b>借りるときは無利子・保証人なし</b>で、免除や猶予のしくみが用意されています。' +
+      'ただし<b>返済の期限までに返し終わらないと延滞利子がかかります</b>。払えないまま放っておかず、早めにご相談ください。</p>';
+  }
+  if(T.status === "arrears"){
+    h += '<div class="flag caution" style="margin:10px 0 0;"><span class="ft">⚠️ 返済が滞っているとのことです</span>' +
+      '放っておくと督促が続き、<b>返済の期限までに返し終わらなかった分には延滞利子がかかります</b>。' +
+      'いっぽうで、「払えない」とお伝えいただければ、<b>免除</b>・<b>返済を待ってもらう（償還猶予）</b>・' +
+      '<b>毎月の額を下げる（少額償還）</b>のどれに当たるかを、一緒に確認できます。' +
+      '<b>連絡がとれないまま滞るのが、いちばん不利な状態です。</b></div>';
+  }else if(T.status === "paying" || T.status === "waiting" || T.monthly > 0){
+    h += '<p><b>返済が苦しいとき：</b>免除に当てはまらない場合でも、<b>毎月の返済額を下げる（少額償還）</b>・<b>返済を待ってもらう（償還猶予）</b>の相談ができる場合があります。窓口でこの言葉を使っていただくと話が早く進みます。ひとりで抱えず、まずお電話ください。</p>';
+  }
+  h += telBlock + src + '</div>';
+  return h;
 }
 
 /* 推定・0円扱いの内訳表示 */
@@ -912,7 +1221,16 @@ function runDiagnosis(){
     document.getElementById("resultBody").innerHTML = out.join("");
     renderContacts();
     showPanel("panelResult");
+    track("diagnose_empty");
     return;
+  }
+  track("diagnose");
+
+  /* --- 特例貸付（コロナ）の案内：当てはまる方にはいちばん上に出す --- */
+  const tkH = tokureiHTML(D);
+  if(tkH){
+    out.push(tkH);
+    if(D.tokurei && D.tokurei.menjoHit) track("menjo_hit");
   }
 
   const balance = D.incomeTotal - D.expenseTotal;
@@ -1212,6 +1530,25 @@ function buildPlans(D, flags){
   const plans = [];
   const hasDanger = flags.some(f => f.level === "danger");
 
+  /* 0. 社協の特例貸付（コロナ）——当てはまる方には最優先で案内する */
+  if(D.tokurei && D.tokurei.active &&
+     (D.tokurei.menjoHit || D.tokurei.fumei || D.tokurei.status === "arrears" || D.tokurei.monthly > 0)){
+    const T = D.tokurei;
+    let body = "";
+    if(T.menjoHit){
+      body += "<p><b>まず、特例貸付の「償還免除」の手続きを。</b>チェックいただいた内容は、国の定める免除の要件に当たります。免除になれば残りを返す必要がなくなり、毎月の家計がその分だけ軽くなります。<b>申請をしないと免除にはなりません。</b></p>";
+    }else if(T.fumei){
+      body += "<p><b>まず、住民税が非課税かどうかを確かめましょう。</b>借りたご本人と世帯主のどちらにも住民税（均等割・所得割）がかかっていなければ、この貸付は免除の対象です。役場で「課税（非課税）証明書」を取れば確認できます。</p>";
+    }else{
+      body += "<p><b>返済が苦しいときは、毎月の額を下げる・返済を待ってもらう相談ができる場合があります。</b>免除に当てはまらないときでも、事情をお伝えいただくことで扱いが変わることがあります。</p>";
+    }
+    body += "<p>この貸付は<b>借りるときは無利子・保証人なし</b>で、免除や猶予（償還猶予・少額償還）のしくみが用意されています。利息のつく民間の借金とは性質が違い、<b>支払いの順序を組み替える余地がある部分</b>です。ただし<b>返済の期限までに返し終わらないと延滞利子がかかります</b>し、<b>ご自分の判断で返済を止めてしまうのは避けてください</b>——連絡がつかないまま滞るのが、いちばん不利な状態です。先にご相談を。</p>";
+    plans.push({pr:1, prLabel: T.menjoHit ? "今すぐ" : "早めに",
+      title: T.menjoHit ? "特例貸付の「償還免除」を申請する" : "特例貸付の返済について相談する",
+      body: body,
+      win: "特例貸付コールセンター " + TOKUREI.callcenter + "（" + TOKUREI.callcenterNote + "） ／ 稲美町社協 079-492-8668"});
+  }
+
   /* 1. 緊急対応 */
   if(D.yamikin || D.arrears.includes("rent") || D.arrears.includes("utility") || D.arrears.includes("mortgage")){
     plans.push({pr:1, prLabel:"今すぐ",
@@ -1406,7 +1743,7 @@ function renderContacts(){
   const box = document.getElementById("contactBox");
   box.innerHTML = "<h3>📞 相談窓口（無料・秘密は守られます）</h3>" +
     CONTACTS.map(c =>
-      '<div class="m-item"><b>'+esc(c.name)+'</b><span class="tel">'+esc(c.tel)+'</span><br><span class="note">'+esc(c.note)+'</span></div>'
+      '<div class="m-item"><b>'+esc(c.name)+'</b><span class="tel"><a class="tel-link" href="tel:'+esc(c.tel.replace(/-/g,""))+'">'+esc(c.tel)+'</a></span><br><span class="note">'+esc(c.note)+'</span></div>'
     ).join("");
 }
 
@@ -1455,6 +1792,26 @@ function buildReport(){
   h += "<tr><th>滞納しているもの</th><td>"+(D.arrearsLabels.length?D.arrearsLabels.map(esc).join("・"):"—")+"</td></tr>";
   h += "<tr><th>預貯金（概算）</th><td>"+(D.savingsBlank?"0円（空欄）":yen(D.savings))+"</td></tr></table>";
 
+  /* 特例貸付（コロナ）：入力があった場合だけ載せる */
+  if(D.tokurei && D.tokurei.any){
+    const T = D.tokurei;
+    const menjo = [];
+    if(T.hikazei) menjo.push("本人・世帯主とも住民税非課税");
+    if(T.seiho)   menjo.push("生活保護の受給あり／受給歴あり");
+    if(T.shogai)  menjo.push("重度の障害者手帳（身体1・2級／精神1級／療育A）");
+    if(T.death)   menjo.push("借受人が死亡");
+    if(T.fumei)   menjo.push("住民税の課税状況が不明");
+    h += "<h3>4-2. 社協の特例貸付（緊急小口資金・総合支援資金）</h3><table>";
+    h += "<tr><th>利用の状況</th><td>"+(T.useText||"—")+"</td></tr>";
+    h += "<tr><th>返済の状況</th><td>"+(T.statusText||"—")+"</td></tr>";
+    h += "<tr><th>残高（概算）</th><td>"+(T.balanceBlank?"0円（空欄）":yen(T.balance))+"</td></tr>";
+    h += "<tr><th>毎月の返済額</th><td>"+(T.monthlyBlank?"0円（空欄）":yen(T.monthly))+"</td></tr>";
+    h += "<tr><th>免除要件の該当（本人申告）</th><td>"+(menjo.length?menjo.map(esc).join("・"):"該当なし")+"</td></tr>";
+    h += "<tr><th>ナビの表示</th><td>"+(T.menjoHit?"「償還免除に当てはまる可能性がある」旨を表示":(T.fumei?"「住民税の確認が必要」旨を表示":"免除要件に該当なしと表示"))+"</td></tr>";
+    h += "</table>";
+    h += "<p style='font-size:12px;color:#666;'>※本人の自己申告に基づく表示です。免除の可否は兵庫県社会福祉協議会が判定します（特例貸付コールセンター "+esc(TOKUREI.callcenter)+"）。</p>";
+  }
+
   /* 家計指標のまとめ（相談員の初期アセスメント用） */
   {
     const val = id => { const f = D.expenses.find(e => e.id === id); return f ? f.value : 0; };
@@ -1482,15 +1839,21 @@ function buildReport(){
 
   document.getElementById("reportArea").innerHTML = h;
   showPanel("panelReport");
+  track("sheet");
 }
 
 function copyReport(){
+  track("copy");
   const text = document.getElementById("reportArea").innerText;
-  navigator.clipboard.writeText(text).then(() => {
-    document.getElementById("copyMsg").style.display = "block";
-  }).catch(() => {
-    alert("自動コピーができませんでした。画面の文章を長押し（または右クリック）でコピーしてください。");
-  });
+  /* 古い端末や、httpsでない環境では navigator.clipboard 自体が無いことがある。
+     その場合でもエラーで止まらず、手動コピーの案内を出す。 */
+  const ng = () => alert("自動コピーができませんでした。画面の文章を長押し（または右クリック）でコピーしてください。");
+  try{
+    if(!navigator.clipboard || !navigator.clipboard.writeText){ ng(); return; }
+    navigator.clipboard.writeText(text).then(() => {
+      document.getElementById("copyMsg").style.display = "block";
+    }).catch(ng);
+  }catch(e){ ng(); }
 }
 
 init();
