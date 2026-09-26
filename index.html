@@ -157,7 +157,9 @@
   @media(min-width:640px){.field-grid{grid-template-columns:1fr 1fr;}}
   .field{
     display:flex;flex-direction:column;gap:4px;
+    min-width:0;   /* 長い選択肢・説明文で2列の枠から右へはみ出さないように */
   }
+  .field select{width:100%;}
   .field label{font-size:15px;font-weight:bold;color:var(--ink);}
   .field .hint{font-size:13px;color:var(--sub);font-weight:normal;}
   .yen-wrap{display:flex;align-items:center;gap:6px;}
