@@ -20,8 +20,9 @@
     ・掲載時点・連絡先・めやすの数字は、下の「★編集ゾーン」にまとめてあります。
     ・「めやす」の割合（食費○％など）は公的基準ではなく一般的なめやすです。
       画面上もそのように表示しています。
-    ・生活保護のめやす表は、くらしの相談ナビと同じ根拠
-      （厚労省 令和8年4月生活扶助基準・兵庫県3級地の住宅扶助）です。
+    ・生活保護のめやす表と「最低生活費のめやす」の試算は、厚労省の生活扶助基準
+      （令和8年4月の基準額＋令和8年10月からの特例加算 月2,500円）と
+      兵庫県3級地の住宅扶助によります。
       基準改定（毎年4月・10月に改定されることがある）の際は見直してください。
 ============================================================================
 -->
@@ -79,6 +80,26 @@
   /* 電話番号のタップ発信（スマートフォン） */
   a.tel-link{color:inherit;text-decoration:none;border-bottom:1px dotted currentColor;}
   a.tel-link:hover{text-decoration:underline;}
+  /* 年単位のお金（折りたたみ） */
+  details.annual{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:4px 20px;margin-bottom:18px;
+  }
+  details.annual > summary{
+    cursor:pointer;font-weight:bold;color:var(--blue-dark);padding:14px 0;font-size:18px;
+  }
+  details.annual[open] > summary{border-bottom:1px solid var(--line);margin-bottom:12px;}
+  details.annual .sub-h{font-size:16px;font-weight:bold;color:var(--blue-dark);margin:16px 0 8px;}
+  details.annual .sub-h:first-of-type{margin-top:4px;}
+  /* 診断結果の冒頭まとめ */
+  .first-box{
+    background:#fff;border:2px solid var(--blue);border-radius:var(--radius);
+    padding:16px 18px;margin:0 0 18px;
+  }
+  .first-box h3{margin:0 0 8px;font-size:20px;color:var(--blue-dark);}
+  .first-box ol{margin:4px 0 0;padding-left:22px;}
+  .first-box li{margin:6px 0;font-size:16px;}
+  .first-box .fb-note{font-size:13px;color:var(--sub);margin:8px 0 0;}
   /* 入力の途中に置く「ここまでで診断する」ボタン */
   .mid-diag{margin:0 0 22px;}
   .mid-diag p{font-size:13px;color:var(--sub);margin:6px 0 0;text-align:center;}
@@ -440,13 +461,24 @@
       <div class="subtotal" id="expenseSubtotal">支出の合計：未入力</div>
     </div>
 
+    <!-- ③-2 年単位のお金（任意・折りたたみ） -->
+    <details class="annual" id="secAnnual">
+      <summary>＋ 年に数回の出費・ボーナスも入れる（任意）</summary>
+      <p class="sec-note" style="margin:0 0 10px;">車検や固定資産税、冠婚葬祭のように<b>毎月ではないけれど、年に何回か必ず出ていくお金</b>は、家計が苦しくなる大きな原因です。<b>1年間の合計</b>を入れると、12で割った「月あたり」の額にして診断に加えます。<b>上の毎月の欄にすでに入れた分は入れないでください</b>（二重になります）。わからなければ0のままでかまいません。</p>
+      <div class="sub-h">年に数回の出費（1年間の合計）</div>
+      <div class="field-grid" id="annualExpenseFields"></div>
+      <div class="sub-h">ボーナス・賞与など（1年間の手取り合計）</div>
+      <div class="field-grid" id="annualIncomeFields"></div>
+      <div class="subtotal" id="annualSubtotal">月あたり：出費 0円／収入 0円</div>
+    </details>
+
     <div class="mid-diag no-print">
       <button class="act wide" onclick="runDiagnosis()">📊 ここまでの内容で診断する</button>
       <p>収入と支出だけでも診断できます。この先の「借入れ・貯金」は、答えられる範囲でかまいません。<br>入力した金額・記述はどこにも送信されません。</p>
     </div>
 
     <!-- ④ 借入・滞納・貯金 -->
-    <div class="sec">
+    <div class="sec" id="sec4">
       <div class="sec-head"><span class="num">4</span><h3>借入れ・支払いの遅れ・貯金</h3></div>
       <p class="sec-note">答えにくい項目かもしれませんが、家計の立て直しにいちばん大切な情報です。<b>借金や滞納がない場合は「0」のまま・チェックなしで</b>かまいません。入力した金額・チェックはどこにも送信されません。</p>
       <div class="field-grid">
@@ -616,7 +648,7 @@
    =========================================================================== */
 
 /* --- ⓪ 掲載内容の時点 ------------------------------------------------------ */
-const DATA_ASOF = "令和8年（2026年）7月";
+const DATA_ASOF = "令和8年（2026年）10月";
 
 /* --- ⓪-2 利用状況の記録（カウンター） -------------------------------------
    何人くらいが使ったかを社協側で把握するための、匿名の回数記録です。
@@ -705,22 +737,44 @@ const THRESHOLDS = {
   debtRatioDanger: 30,    // 返済が収入の30%以上 → 危険
   debtCountDanger: 3,     // 借入先3か所以上 → 多重債務のおそれ
   savingsMonthsCaution: 3,// 貯金が生活費3か月分未満 → 注意
-  savingsMonthsDanger: 1, // 貯金が生活費1か月分未満 → 危険
-  lowIncomeSingle: 95000, // 単身でこの額未満 → 生活保護等の案内（控えめな額に設定）
-  lowIncomeMulti: 130000  // 2人以上でこの額未満 → 生活保護等の案内（控えめな額に設定）
+  savingsMonthsDanger: 1  // 貯金が生活費1か月分未満 → 危険
+  /* 「収入が生活保護のめやすを下回っている可能性」の判定は、以前は
+     単身9.5万円・2人以上13万円の固定額だったが、3人以上の世帯で低すぎたため、
+     2026-09-27 から下の SEIHO_KIJUN で世帯ごとに試算する方式に改めた。 */
 };
 
 /* --- ④ 生活保護のめやす（参考表） -------------------------------------------
-   くらしの相談ナビと同じ根拠：厚生労働省 令和8年4月からの生活扶助基準による
-   計算例（稲美町＝3級地-1）＋兵庫県3級地の住宅扶助上限。
-   基準は改定されることがあるため、年度替わりに要点検。 */
+   厚生労働省「生活保護制度における生活扶助基準額の算出方法（令和8年4月）」の
+   3級地-1（稲美町）の基準額に、令和8年10月からの特例加算（1人月額2,500円）を
+   加えた計算例＋兵庫県3級地の住宅扶助上限。
+   ・特例加算は令和8年10月〜令和9年9月の1年間の措置（社会保障審議会
+     生活保護基準部会 令和8年2月27日 資料4）。令和9年10月に必ず点検すること。 */
 const SEIHO_EXAMPLES = [
-  { setai: "65〜69歳のひとり暮らし", seikatsu: "約7.0万円" },
-  { setai: "75歳以上のひとり暮らし", seikatsu: "約6.4万円" },
-  { setai: "30代の母親＋4歳のお子さん", seikatsu: "約13.7万円" },
-  { setai: "障がいのある方のひとり暮らし（障害者加算あり）", seikatsu: "約9.4万円" }
+  { setai: "65〜69歳のひとり暮らし", seikatsu: "約7.1万円" },
+  { setai: "75歳以上のひとり暮らし", seikatsu: "約6.5万円" },
+  { setai: "30代の母親＋4歳のお子さん", seikatsu: "約13.9万円" },
+  { setai: "障がいのある方のひとり暮らし（障害者加算あり）", seikatsu: "約9.5万円" }
 ];
 const SEIHO_JUTAKU = "家賃がある場合はさらに住宅扶助（上限のめやす：単身32,300円・2人世帯39,000円・3〜5人世帯42,000円）が加わります。";
+const SEIHO_ASOF = "令和8年10月からの基準";
+
+/* 「最低生活費のめやす」を世帯ごとに試算するための基準額（3級地-1・月額・円）。
+   年齢が分からないため、あえて低めに見積もる（＝本当は対象なのに案内が出ない
+   ことはあっても、対象でない人に強く出すことはないようにする）。
+   ・おとなの第1類は、65歳以上がいる世帯は75歳以上の額、いない世帯は
+     18〜74歳のうち最も低い額を使う。子どもは0〜5歳の額（子どもの中で最も低い）。
+   ・障害者加算・冬季加算・教育扶助・勤労控除などは入れていない（入れると上がる）。
+   ・6人以上の第2類と住宅扶助は、5人の値で代用（低めに出る）。 */
+const SEIHO_KIJUN = {
+  dai1AdultElderly: 35100,   // 第1類 75歳〜
+  dai1Adult: 40880,          // 第1類 18〜74歳のうち最も低い額（65〜74歳）
+  dai1Child: 39230,          // 第1類 0〜5歳
+  teigen: [1.0, 0.87, 0.75, 0.66, 0.59, 0.58],   // 逓減率 1〜6人
+  dai2: [27790, 38060, 44730, 48900, 49180, 49180], // 第2類 1〜5人（6人は5人の値）
+  tokureiKasan: 2500,        // 特例加算（1人あたり・令和8年10月〜）
+  jidoYoiku: 10190,          // 児童養育加算（児童1人につき）
+  boshi: { one:16100, two:20200, add:2500 }   // 母子加算（3級地。ひとり親世帯に適用）
+};
 
 /* --- ④-2 空欄の支出を補うための全国平均値 ---------------------------------
    出典：総務省統計局「家計調査報告（家計収支編）2025年（令和7年）平均」
@@ -773,9 +827,22 @@ const EXPENSE_FIELDS = [
   { id: "ex_other",     label: "その他の支出",               gkey: null,        hint: "" }
 ];
 
-/* 円グラフの色（支出13項目分） */
+/* 年単位のお金（1年間の合計を入れてもらい、12で割って月あたりにする） */
+const ANNUAL_EXPENSE_FIELDS = [
+  { id: "an_car",    label: "自動車税・車検・自動車保険の年払い", hint: "毎月の「車の費用」に入れていない分" },
+  { id: "an_tax",    label: "固定資産税など、年に数回払う税金", hint: "毎月の「税金」に入れていない分" },
+  { id: "an_event",  label: "冠婚葬祭・帰省・お祝い・お年玉",   hint: "" },
+  { id: "an_school", label: "入学・制服・修学旅行など学校の大きな出費", hint: "" },
+  { id: "an_kaden",  label: "家電・家具の買い替え・家の修理",   hint: "ならした年あたりの額で" },
+  { id: "an_other",  label: "年払いのもの（NHK・保険・会費など）", hint: "" }
+];
+const ANNUAL_INCOME_FIELDS = [
+  { id: "an_bonus",  label: "ボーナス・賞与など",               hint: "1年間の手取りの合計" }
+];
+
+/* 円グラフの色（支出14項目分） */
 const PIE_COLORS = ["#2a6f8f","#e0813f","#2e7d5b","#b5533c","#6a5fa3","#c9a227",
-                    "#4a90a4","#8a6d4f","#5b8c5a","#c26565","#7a7a52","#4f6d8a","#9b8ba5"];
+                    "#4a90a4","#8a6d4f","#5b8c5a","#c26565","#7a7a52","#4f6d8a","#9b8ba5","#6b8e9e"];
 
 /* ===========================================================================
    ★★★ 編集ゾーン ここまで ★★★（これより下はプログラム部分）
@@ -968,6 +1035,15 @@ function init(){
   INCOME_FIELDS.forEach(f => incWrap.insertAdjacentHTML("beforeend", fieldHTML(f)));
   const exWrap = document.getElementById("expenseFields");
   EXPENSE_FIELDS.forEach(f => exWrap.insertAdjacentHTML("beforeend", fieldHTML(f)));
+  const anExWrap = document.getElementById("annualExpenseFields");
+  ANNUAL_EXPENSE_FIELDS.forEach(f => anExWrap.insertAdjacentHTML("beforeend", fieldHTML(f, "円/年")));
+  const anIncWrap = document.getElementById("annualIncomeFields");
+  ANNUAL_INCOME_FIELDS.forEach(f => anIncWrap.insertAdjacentHTML("beforeend", fieldHTML(f, "円/年")));
+  /* ④（借入れ・貯金）に一度でも手を入れたかを覚えておく。
+     「ここまでで診断する」で④を飛ばした人の貯金欄は初期値の0のままなので、
+     それを「貯金がない」と読んで危険サインを出さないようにするため。 */
+  const sec4 = document.getElementById("sec4");
+  ["input","change"].forEach(ev => sec4.addEventListener(ev, () => { SEC4_TOUCHED = true; }));
 
   document.querySelectorAll("input.yen").forEach(inp => {
     inp.addEventListener("input", () => { formatYenField(inp); updateSubtotals(); });
@@ -979,11 +1055,19 @@ function init(){
   updateSubtotals();
   track("open");
 }
-function fieldHTML(f){
+function fieldHTML(f, unit){
   return '<div class="field"><label for="'+f.id+'">'+esc(f.label)+
     (f.hint ? ' <span class="hint">'+esc(f.hint)+'</span>' : '')+
     '</label><div class="yen-wrap"><input type="text" class="yen" id="'+f.id+
-    '" inputmode="numeric" value="0"><span class="yen-unit">円/月</span></div></div>';
+    '" inputmode="numeric" value="0"><span class="yen-unit">'+(unit || "円/月")+'</span></div></div>';
+}
+/* 年単位の欄を読み、月あたりに直す（空欄は0円。平均での推定はしない） */
+function readAnnual(){
+  const sum = fields => fields.reduce((t, f) => t + (readYen(f.id) || 0), 0);
+  const exYear = sum(ANNUAL_EXPENSE_FIELDS), incYear = sum(ANNUAL_INCOME_FIELDS);
+  const items = ANNUAL_EXPENSE_FIELDS.map(f => ({label: f.label, year: readYen(f.id) || 0}))
+    .filter(x => x.year > 0);
+  return { exYear, incYear, exMonth: Math.round(exYear / 12), incMonth: Math.round(incYear / 12), items };
 }
 function updateSubtotals(){
   const tally = fields => {
@@ -996,11 +1080,16 @@ function updateSubtotals(){
   };
   const inc = tally(INCOME_FIELDS);
   const ex  = tally(EXPENSE_FIELDS);
+  const an  = readAnnual();
   document.getElementById("incomeSubtotal").textContent =
     "収入の合計：" + yen(inc.total) + "／月" + (inc.blanks ? "（空欄" + inc.blanks + "項目は0円扱い）" : "");
   document.getElementById("expenseSubtotal").textContent =
     "支出の合計：" + yen(ex.total) + "／月" + (ex.blanks ? "（空欄" + ex.blanks + "項目は診断時に平均で補完）" : "");
+  document.getElementById("annualSubtotal").textContent =
+    "月あたりにすると：出費 " + yen(an.exMonth) + "／収入 " + yen(an.incMonth) + "（診断に加えます）";
 }
+
+let SEC4_TOUCHED = false;
 
 /* ---------- 画面切り替え ---------- */
 function showPanel(id){
@@ -1071,8 +1160,22 @@ function collectData(){
     return {...f, raw: null, value: 0, est: false, blankZero: true};
   });
 
+  /* 年単位のお金を「月あたり」の1項目として足す（0円なら足さない） */
+  const annual = readAnnual();
+  if(annual.incMonth > 0){
+    incomes.push({ id: "inc_annual", label: "ボーナス・賞与など（年額の月割り）", hint: "",
+      raw: annual.incMonth, value: annual.incMonth, blank: false, annual: true });
+  }
+  if(annual.exMonth > 0){
+    expenses.push({ id: "ex_annual", label: "年に数回の出費（年額の月割り）", gkey: null, hint: "",
+      raw: annual.exMonth, value: annual.exMonth, est: false, annual: true });
+  }
+
   const debtRaw = readYen("debtTotal");
   const savRaw = readYen("savings");
+  /* 貯金は、④に手を入れた人か、0より大きい額が入っている人だけ判定に使う。
+     空欄（わからない）と、④を飛ばして初期値の0が残っているだけの場合は「未回答」。 */
+  const savingsKnown = savRaw !== null && (savRaw > 0 || SEC4_TOUCHED);
   const arrears = [...document.querySelectorAll(".arrears:checked")].map(c => c.value);
   const arrearsLabels = [...document.querySelectorAll(".arrears:checked")].map(c => c.closest(".chk").innerText.trim());
   const debtTypes = [...document.querySelectorAll(".debtType:checked")].map(c => c.value);
@@ -1105,6 +1208,8 @@ function collectData(){
     arrears, arrearsLabels,
     savings: savRaw === null ? 0 : savRaw,
     savingsBlank: savRaw === null,
+    savingsKnown,
+    annual,
     tokurei: TOKUREI_ON ? readTokurei() : null,
     freeText: document.getElementById("freeText").value.trim()
   };
@@ -1208,9 +1313,11 @@ function estimatesNoteHTML(D){
   if(D.blankZeroExp.length) zeros.push("支出＝" + D.blankZeroExp.map(e => e.label).join("・"));
   if(D.blankInc.length) zeros.push("収入＝" + D.blankInc.map(i => i.label).join("・"));
   if(D.debtBlank) zeros.push("借金の残高");
-  if(D.savingsBlank) zeros.push("預貯金");
   if(zeros.length){
     h += '<div class="skipped-note">ℹ️ 空欄のため<b>0円として計算</b>した項目（世帯差が大きく、平均値での推定になじまない項目です）：' + esc(zeros.join("／")) + '</div>';
+  }
+  if(!D.savingsKnown){
+    h += '<div class="skipped-note">ℹ️ <b>預貯金は未回答</b>のため、貯金にかかわる判定（生活費の何か月分あるか）はしていません。貯金がまったくない場合は、④の預貯金の欄に「0」と入れ直してから診断してください。</div>';
   }
   return h;
 }
@@ -1283,7 +1390,7 @@ function runDiagnosis(){
   if(flags.length > 0){
     out.push('<h2 class="q" style="font-size:20px;">🔎 家計のチェック結果</h2>');
     flags.forEach(f => {
-      out.push('<div class="flag '+f.level+'"><span class="ft">'+f.icon+' '+esc(f.title)+'</span>'+f.body+'</div>');
+      out.push('<div class="flag '+f.level+'"><span class="ft">'+f.icon+' '+esc(f.title)+'</span>'+telLinks(f.body)+'</div>');
     });
   }
 
@@ -1292,18 +1399,62 @@ function runDiagnosis(){
 
   /* --- 方針案 --- */
   const plans = buildPlans(D, flags);
+  D.checks = flags;
+
+  /* --- 冒頭のまとめ（いちばん上、特例貸付の案内の次に差し込む） --- */
+  out.splice(tkH ? 1 : 0, 0, firstBoxHTML(D, balance, flags, plans));
+
   if(plans.length > 0){
     out.push('<h2 class="q" style="font-size:20px;">🧭 これからの方針案（参考）</h2>');
     out.push('<p class="lead">緊急度の高い順に並べています。ぜんぶを一度にやる必要はありません。<b>迷ったら、下の相談窓口のどれかにお電話ください。</b></p>');
     plans.forEach((p,i) => {
-      out.push('<div class="plan"><h4><span class="pr p'+p.pr+'">'+p.prLabel+'</span>'+(i+1)+'. '+esc(p.title)+'</h4>'+p.body+
-        (p.win ? '<div class="win">🏢 相談先：'+p.win+'</div>' : '')+'</div>');
+      out.push('<div class="plan" id="plan'+(i+1)+'"><h4><span class="pr p'+p.pr+'">'+p.prLabel+'</span>'+(i+1)+'. '+esc(p.title)+'</h4>'+telLinks(p.body)+
+        (p.win ? '<div class="win">🏢 相談先：'+telLinks(p.win)+'</div>' : '')+'</div>');
     });
   }
 
   document.getElementById("resultBody").innerHTML = out.join("");
   renderContacts();
   showPanel("panelResult");
+}
+
+/* ---------- 最低生活費のめやす（控えめな試算） ----------
+   生活保護の「最低生活費」を、世帯の人数・子どもの数・ひとり親かどうか・家賃から
+   ざっくり試算する。年齢などが分からないため、わざと低めに見積もっている
+   （詳しくは編集ゾーンの SEIHO_KIJUN の説明）。世帯人数が未回答なら null。 */
+function minLivingCost(D){
+  if(D.hhSize === null) return null;
+  const K = SEIHO_KIJUN;
+  const n = Math.min(D.hhSize, 6);
+  const kids = Math.min(D.kids === null ? 0 : D.kids, n - 1);   // 本人は大人として数える
+  const adults = n - kids;
+  const adultRate = D.flags.elderly ? K.dai1AdultElderly : K.dai1Adult;
+  const dai1 = (adults * adultRate + kids * K.dai1Child) * K.teigen[n - 1];
+  let total = dai1 + K.dai2[n - 1] + K.tokureiKasan * n;
+  const parts = ["生活費（生活扶助）"];
+  if(kids > 0){
+    total += K.jidoYoiku * kids;
+    parts.push("児童養育加算");
+    if(D.flags.singleParent){
+      total += kids === 1 ? K.boshi.one : K.boshi.two + K.boshi.add * Math.max(kids - 2, 0);
+      parts.push("ひとり親世帯の加算");
+    }
+  }
+  let rent = 0;
+  const ht = D.housingType;
+  if(ht === "rent" || ht === "public" || ht === "company"){
+    const cap = n === 1 ? JUTAKU_FUJO.single : (n === 2 ? JUTAKU_FUJO.two : JUTAKU_FUJO.threeToFive);
+    const h = D.expenses.find(e => e.id === "ex_housing");
+    rent = Math.min(h ? h.value : 0, cap);
+    if(rent > 0){ total += rent; parts.push("家賃（住宅扶助の上限まで）"); }
+  }
+  /* 表示用に千円未満を切り捨てる（低めに見せる側に丸める） */
+  return { amount: Math.floor(total / 1000) * 1000, parts, rent };
+}
+/* 収入が最低生活費のめやすを下回っているか */
+function isBelowMinLiving(D){
+  const m = minLivingCost(D);
+  return !!(m && D.incomeTotal > 0 && D.incomeTotal < m.amount);
 }
 
 /* ---------- 専門指標（家計相談で使われる指標の機械計算） ---------- */
@@ -1359,7 +1510,7 @@ function indicatorsHTML(D, balance){
           "借金総額 ÷ 手取り年収（12か月分）の概算。3分の1に近いほど新規借入れの余地がなく、借換えでのやり繰りが行き詰まりやすい");
     }
   }
-  if(ex > 0){
+  if(ex > 0 && D.savingsKnown){
     const months = D.savings / ex;
     const mtxt = months >= 1 ? "約 " + (Math.round(months * 10) / 10) + "か月分" : "1か月分未満";
     row("生活防衛資金", mtxt, "生活費3か月分以上がめやす",
@@ -1378,8 +1529,7 @@ function kataHTML(D, balance){
   const inc = D.incomeTotal;
   const val = id => { const f = D.expenses.find(e => e.id === id); return f ? f.value : 0; };
   const types = [];
-  const lowIncome = inc > 0 && ((D.hhSize === 1 && inc < THRESHOLDS.lowIncomeSingle) ||
-    (D.hhSize !== null && D.hhSize >= 2 && inc < THRESHOLDS.lowIncomeMulti));
+  const lowIncome = isBelowMinLiving(D);
   const dp = val("ex_debt");
   const dti = inc > 0 ? dp / inc * 100 : 0;
   const debtHeavy = (D.debtCount !== null && D.debtCount >= THRESHOLDS.debtCountDanger) ||
@@ -1427,6 +1577,12 @@ function kataHTML(D, balance){
     '<p style="font-size:13px;color:var(--sub);">※ 入力内容（推定値を含む）からの機械的な判定です。複数の型に当てはまる場合は、上に書かれているものほど優先度の高い課題です。</p></div>';
 }
 
+/* 年に数回の出費を入れていない人への一言（黒字の判定が甘くなりやすいため） */
+function annualHint(D){
+  if(D.annual && D.annual.exYear > 0) return "";
+  return "<br>※ 車検・固定資産税・冠婚葬祭など<b>年に数回の出費</b>は、毎月の欄には入りにくいものです。入力画面の「＋ 年に数回の出費・ボーナスも入れる」に1年分を入れると、月あたりに直して診断します。";
+}
+
 /* ---------- 危険サイン判定 ---------- */
 function buildFlags(D){
   const flags = [];
@@ -1464,10 +1620,10 @@ function buildFlags(D){
       body:"赤字が続くと、貯金の取り崩しや借入れにつながります。下の方針案を参考に、<b>「支出を減らす」「収入・給付を増やす」「借金を整理する」の3方向</b>から立て直しを考えましょう。ひとりで抱えず、家計の相談は下の相談窓口で一緒にできます。"});
   } else if(both && D.incomeTotal > 0 && balance >= 0 && balance < D.incomeTotal * 0.1){
     flags.push({level:"caution", icon:"⚖️", title:"黒字ですが、余裕は少なめです（収支の差：約"+yen(balance)+"）",
-      body:"急な出費（家電の故障・医療費など）があると赤字になりやすい状態です。下の「めやすとの比較」で大きめの項目がないか確認してみてください。"});
+      body:"急な出費（家電の故障・医療費など）があると赤字になりやすい状態です。下の「めやすとの比較」で大きめの項目がないか確認してみてください。" + annualHint(D)});
   } else if(both && balance >= 0){
     flags.push({level:"ok", icon:"✅", title:"入力された範囲では、毎月約"+yen(balance)+"の黒字です",
-      body:"この調子で、黒字分を貯金や滞納の解消に回せると安心です。ボーナス月・出費の多い月も含めた年間で見ると、より正確になります。"});
+      body:"この調子で、黒字分を貯金や滞納の解消に回せると安心です。" + (annualHint(D) || "ボーナス月・出費の多い月も含めた年間で見ると、より正確になります。")});
   }
   /* 返済負担率 */
   const debtPay = D.expenses.find(e => e.id === "ex_debt");
@@ -1506,8 +1662,8 @@ function buildFlags(D){
     flags.push({level:"caution", icon:"🎒", title:"学校関係の支払いの滞納があります",
       body:"小・中学生のお子さんがいる世帯には、給食費や学用品費を援助する<b>「就学援助」の制度</b>があります。学校または町の教育委員会にご相談ください。"});
   }
-  /* 貯金 */
-  if(D.expenseTotal > 0){
+  /* 貯金（未回答のときは判定しない） */
+  if(D.expenseTotal > 0 && D.savingsKnown){
     const months = D.savings / D.expenseTotal;
     if(months < THRESHOLDS.savingsMonthsDanger){
       flags.push({level:"danger", icon:"🏦", title:"預貯金が生活費1か月分を下回っています",
@@ -1518,14 +1674,11 @@ function buildFlags(D){
     }
   }
   /* 低収入 → 生活保護等の案内 */
-  if(D.incomeTotal > 0){
-    const single = D.hhSize === 1;
-    const multi = D.hhSize !== null && D.hhSize >= 2;
-    if((single && D.incomeTotal < THRESHOLDS.lowIncomeSingle) ||
-       (multi && D.incomeTotal < THRESHOLDS.lowIncomeMulti)){
-      flags.push({level:"info", icon:"🛟", title:"収入が生活保護のめやすを下回っている可能性があります",
-        body:"世帯の人数・年齢・家賃などによって基準は変わりますが、入力された収入は公的な支えの対象になる可能性がある水準です。下の<b>「生活保護のめやす（参考）」</b>とくらべてみてください。<b>生活保護は国民の権利です。</b>ためらわず、役場地域福祉課（079-492-9136）にご相談ください。"});
-    }
+  if(isBelowMinLiving(D)){
+    const m = minLivingCost(D);
+    flags.push({level:"info", icon:"🛟", key:"seiho", title:"収入が生活保護のめやすを下回っている可能性があります",
+      body:"入力された世帯のようすから、生活保護の「最低生活費」を<b>低めに見積もると月およそ" + yen(m.amount) + "</b>（" + esc(m.parts.join("＋")) + "）です。手取り収入の" + yen(D.incomeTotal) + "は、これを下回っています。" +
+        "実際の基準は年齢・障がい・働いて得た収入の控除などで<b>これより高くなることが多い</b>ため、公的な支えの対象になる可能性は十分にあります。下の<b>「生活保護のめやす（参考）」</b>もご覧ください。<b>生活保護は国民の権利です。</b>ためらわず、役場地域福祉課（079-492-9136）にご相談ください。"});
   }
   /* 求職中 */
   if(D.workStatus === "seeking"){
@@ -1561,7 +1714,7 @@ function buildPlans(D, flags){
 
   /* 1. 緊急対応 */
   if(D.yamikin || D.arrears.includes("rent") || D.arrears.includes("utility") || D.arrears.includes("mortgage")){
-    plans.push({pr:1, prLabel:"今すぐ",
+    plans.push({pr:1, prLabel:"今すぐ", urgent:true,
       title:"住まい・ライフライン・危険な借入れへの対応",
       body:"<p>住まいを失うこと、電気・ガス・水道が止まること、違法な取り立ては、生活の土台を壊してしまいます。<b>ここだけは後回しにせず、今週中に一歩</b>（窓口への電話1本でOK）を踏み出しましょう。上の「チェック結果」の該当項目に、それぞれの対処法を書いています。</p>" +
       "<p>家計再建の実務では、支払いには優先順位があります：<b>①住まい（家賃・住宅ローン）②電気・ガス・水道 ③税金・社会保険料 ④民間の借金</b>。民間の借金には法律で整理する手段（債務整理）がある一方、住まいとライフラインは失うと生活そのものが崩れるためです。<b>借金の返済を優先して家賃や税金を後回しにしている場合は、この順序が逆転しています</b>——責める趣旨ではなく、立て直しの入口として順序を組み替えましょう。</p>",
@@ -1645,7 +1798,7 @@ function buildPlans(D, flags){
       win:"各制度の窓口（「くらしの相談ナビ」で調べられます）／ どこに聞けばよいか迷うときは社協 079-492-8668"});
   }
   /* 6. 生活保護 */
-  const lowIncome = flags.some(f => f.title.includes("生活保護のめやす"));
+  const lowIncome = flags.some(f => f.key === "seiho");
   if(lowIncome){
     plans.push({pr:1, prLabel:"ためらわず",
       title:"生活保護の相談をする",
@@ -1658,7 +1811,53 @@ function buildPlans(D, flags){
     body:"<p>家計の立て直しは、<b>お金の残りが少なくなる前に相談するほど選択肢が多い</b>のがいちばんの原則です。国の生活困窮者自立支援制度には、専門の支援員と一緒に家計を「見える化」し、滞納の整理・返済計画・貯蓄の習慣づくりまで伴走する<b>家計改善支援</b>という仕組みもあります（相談は無料）。稲美町では、役場地域福祉課（くらしの相談窓口）のほか、兵庫県から受託している自立相談支援センターひょうご 姫路事務所（神戸の冬を支える会）に直接相談でき、家計改善支援はワーカーズコープ（ひょうご暮らしと仕事のよりそい支援センター）の相談員が担当します。</p><p>下の「相談シートを作る」ボタンで、今回の入力内容と診断のポイントを印刷できる形にまとめられます。窓口にお持ちいただくと話が早く進みます。相談は無料で、秘密は守られます。</p>",
     win:"役場地域福祉課 079-492-9136 ／ 自立相談支援センターひょうご 姫路事務所 079-284-5514 ／ よりそい支援センター（ワーカーズコープ）079-224-2188 ／ どこに相談してよいか分からないときは社協 079-492-8668"});
 
+  /* 画面では「緊急度の高い順」とうたっているので、優先度（pr）の順に並べ直す。
+     同じ優先度のなかでは上で足した順を保つ。ただし住まい・ライフライン・ヤミ金への
+     対応（urgent）は、特例貸付の免除申請よりも先に置く（失ってからでは取り返せないため）。
+     最後の「家計の相談をする」は常に末尾。 */
+  const last = plans.pop();
+  plans.forEach((p, i) => p._i = i);
+  plans.sort((a, b) => (a.pr - b.pr) || ((a.urgent ? 0 : 1) - (b.urgent ? 0 : 1)) || (a._i - b._i));
+  plans.push(last);
   return plans;
+}
+
+/* ---------- 文中の電話番号をタップで発信できるようにする ----------
+   診断結果の文章（危険サイン・方針案・相談先）に書いてある番号をリンクにする。
+   すでにリンクになっている箇所（<a>…</a>）には触れない。 */
+const TEL_RE = /0\d{1,4}-\d{1,4}-\d{3,4}|0570-\d{6}/g;
+function telLinks(html){
+  return String(html).split(/(<a\b[^>]*>[\s\S]*?<\/a>)/).map(part => {
+    if(/^<a\b/.test(part)) return part;
+    return part.replace(TEL_RE,
+      t => '<a class="tel-link" href="tel:' + t.replace(/-/g, "") + '">' + t + '</a>');
+  }).join("");
+}
+
+/* ---------- 診断結果の冒頭まとめ「まず、ここから」 ----------
+   結果画面は長いので、いちばん上に「いまの状態」と「最初の一歩」だけを置く。 */
+function firstBoxHTML(D, balance, flags, plans){
+  const li = [];
+  if(D.incomeTotal > 0 || D.expenseTotal > 0){
+    li.push(balance < 0
+      ? '毎月の収支は<b style="color:var(--danger);">約' + yen(Math.abs(balance)) + 'の赤字</b>です。'
+      : '毎月の収支は<b style="color:var(--ok);">約' + yen(balance) + 'の黒字</b>です。');
+  }
+  const dangers = flags.filter(f => f.level === "danger" && !/赤字です$/.test(f.title));
+  if(dangers.length){
+    li.push("急いで手を打ちたいことが<b>" + dangers.length + "つ</b>あります：" +
+      dangers.slice(0, 3).map(f => esc(f.title.replace(/——.*$/, ""))).join("／") + (dangers.length > 3 ? " ほか" : ""));
+  }
+  const first = plans[0];
+  if(first){
+    /* 相談先の1つめだけを「名前＋電話番号」の形で添える（かっこ書きの補足は省く） */
+    const firstWin = (first.win || "").split("／")[0].replace(/（.*$/, "").trim();
+    li.push('最初の一歩：<b><a href="#plan1" style="color:inherit;">' + esc(first.title) + '</a></b>' +
+      (/\d{3,4}-\d{3,4}/.test(firstWin) ? "<br>まずはお電話1本で → " + telLinks(firstWin) : ""));
+  }
+  if(!li.length) return "";
+  return '<div class="first-box"><h3>🧭 まず、ここから</h3><ol>' + li.map(x => "<li>" + x + "</li>").join("") + '</ol>' +
+    '<p class="fb-note">くわしい分析・チェック結果・方針案は、この下に続きます。</p></div>';
 }
 
 /* ---------- グラフ描画（SVG・外部ライブラリ不使用） ---------- */
@@ -1744,7 +1943,7 @@ function seihoHTML(){
     '<p style="font-size:15px;">生活保護は、世帯の収入が国の定める「最低生活費」に足りないとき、その差額を補う制度です。稲美町（3級地-1）での生活費部分（生活扶助）の計算例：</p>' +
     '<table><tr><th>世帯の例</th><th>生活扶助のめやす（月額）</th></tr>' + rows + '</table>' +
     '<p style="font-size:15px;">' + esc(SEIHO_JUTAKU) + '</p>' +
-    '<p class="src">出典：厚生労働省「生活保護制度における生活扶助基準額の算出方法（令和8年4月）」に基づく計算例、住宅扶助は兵庫県3級地の基準（' + DATA_ASOF + '時点）。実際の基準額は年齢・世帯構成・障がいの有無などで変わります。正確な判定は必ず窓口でご確認ください。</p>' +
+    '<p class="src">出典：厚生労働省「生活保護制度における生活扶助基準額の算出方法（令和8年4月）」に、令和8年10月からの特例加算（1人月額2,500円・令和9年9月までの措置）を加えた計算例。住宅扶助は兵庫県3級地の基準（' + esc(SEIHO_ASOF) + '）。実際の基準額は年齢・世帯構成・障がいの有無などで変わります。正確な判定は必ず窓口でご確認ください。</p>' +
     '</details>';
 }
 
@@ -1792,6 +1991,11 @@ function buildReport(){
     h += "<p style='font-size:12px;color:#666;'>※推定＝空欄だったため、総務省「家計調査報告（家計収支編）2025年平均」をもとにした仮の金額（使用した区分："+esc(D.avg.note)+"。通信・自動車は二人以上の世帯の値を準用、賃貸の住居費は住宅扶助上限を参考）。</p>";
   }
 
+  if(D.annual && (D.annual.exYear > 0 || D.annual.incYear > 0)){
+    h += "<p style='font-size:13px;'>年単位のお金（1年間の合計→月割り）："+
+      (D.annual.items.length ? D.annual.items.map(x => esc(x.label)+" "+yen(x.year)).join("、") : "出費なし")+
+      (D.annual.incYear > 0 ? "／ボーナス等 "+yen(D.annual.incYear) : "")+"</p>";
+  }
   const bal = D.incomeTotal - D.expenseTotal;
   h += "<p><b>毎月の収支："+(bal>=0?"+":"−")+yen(Math.abs(bal))+"</b></p>";
 
@@ -1800,7 +2004,7 @@ function buildReport(){
   h += "<tr><th>借入先の数</th><td>"+(D.debtCount!==null?(D.debtCount===0?"借入れなし":D.debtCount+"か所"+(D.debtCount>=5?"以上":"")):"—")+"</td></tr>";
   h += "<tr><th>借入れの種類</th><td>"+(D.debtTypes.length?D.debtTypes.map(esc).join("・"):"—")+"</td></tr>";
   h += "<tr><th>滞納しているもの</th><td>"+(D.arrearsLabels.length?D.arrearsLabels.map(esc).join("・"):"—")+"</td></tr>";
-  h += "<tr><th>預貯金（概算）</th><td>"+(D.savingsBlank?"0円（空欄）":yen(D.savings))+"</td></tr></table>";
+  h += "<tr><th>預貯金（概算）</th><td>"+(D.savingsKnown?yen(D.savings):"未回答")+"</td></tr></table>";
 
   /* 特例貸付（コロナ）：入力があった場合だけ載せる */
   if(D.tokurei && D.tokurei.any){
@@ -1833,10 +2037,23 @@ function buildReport(){
       if(val("ex_debt") > 0) rows.push("<tr><th>返済負担率（DTI）</th><td>約"+(Math.round(val("ex_debt")/D.incomeTotal*1000)/10)+"％</td></tr>");
       rows.push("<tr><th>家計収支率</th><td>"+(bal>=0?"＋":"−")+Math.abs(Math.round(bal/D.incomeTotal*1000)/10)+"％</td></tr>");
     }
-    if(D.expenseTotal > 0) rows.push("<tr><th>生活防衛資金</th><td>生活費の約"+(Math.round(D.savings/D.expenseTotal*10)/10)+"か月分</td></tr>");
+    if(D.expenseTotal > 0 && D.savingsKnown) rows.push("<tr><th>生活防衛資金</th><td>生活費の約"+(Math.round(D.savings/D.expenseTotal*10)/10)+"か月分</td></tr>");
     if(rows.length){
       h += "<h3>5. 家計指標（機械計算・参考）</h3><table>"+rows.join("")+"</table>";
       h += "<p style='font-size:12px;color:#666;'>※ナビが入力内容（推定値を含む）から機械的に計算した参考値です。</p>";
+    }
+  }
+
+  /* ナビが出したチェック結果の見出しだけを並べる（相談員が最初に見るところ） */
+  {
+    const checks = D.checks || buildFlags(D);
+    const mk = {danger:"【要対応】", caution:"【注意】", info:"【案内】", ok:"【良好】"};
+    const ml = minLivingCost(D);
+    if(checks.length || ml){
+      h += "<h3>5-2. ナビのチェック結果（要点）</h3><ul style='margin:4px 0;padding-left:20px;'>";
+      checks.forEach(f => { h += "<li>"+(mk[f.level]||"")+esc(f.title)+"</li>"; });
+      if(ml) h += "<li>【参考】最低生活費のめやす（控えめな試算）：月約"+yen(ml.amount)+"（"+esc(ml.parts.join("＋"))+"・"+esc(SEIHO_ASOF)+"）</li>";
+      h += "</ul>";
     }
   }
 
