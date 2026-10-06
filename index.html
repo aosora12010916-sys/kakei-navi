@@ -1239,7 +1239,10 @@ function readTokurei(){
   t.menjoHit = t.hikazei || t.seiho || t.shogai || t.death;
   t.any = t.use !== "" || t.status !== "" || t.balance > 0 || t.monthly > 0 ||
           t.menjoHit || t.fumei;
-  t.active = t.any && t.use !== "no";
+  /* 方針案・免除該当の記録の対象は、いま返済が残っている（かもしれない）人だけ。
+     「免除になった」「返し終わった」人は、非課税などにチェックがあっても免除申請を勧めない。 */
+  t.settled = t.use === "menjo" || t.use === "done";
+  t.active = t.any && t.use !== "no" && !t.settled;
   return t;
 }
 
@@ -1331,7 +1334,7 @@ function runDiagnosis(){
 
   /* 初期状態（何も触っていない）の判定 */
   const pristine = [...document.querySelectorAll("input.yen")].every(i => i.value.trim() === "0") &&
-    ["hhSize","kids","housingType","workStatus","debtCount"].every(id => document.getElementById(id).value === "") &&
+    ["hhSize","kids","housingType","workStatus","debtCount","tkUse","tkStatus"].every(id => document.getElementById(id).value === "") &&
     document.querySelectorAll(".chk input:checked").length === 0 &&
     D.freeText === "";
   if(pristine){
@@ -1349,7 +1352,7 @@ function runDiagnosis(){
   const tkH = tokureiHTML(D);
   if(tkH){
     out.push(tkH);
-    if(D.tokurei && D.tokurei.menjoHit) track("menjo_hit");
+    if(D.tokurei && D.tokurei.active && D.tokurei.menjoHit) track("menjo_hit");
   }
 
   const balance = D.incomeTotal - D.expenseTotal;
@@ -1630,11 +1633,15 @@ function buildFlags(D){
   /* 返済負担率 */
   const debtPay = D.expenses.find(e => e.id === "ex_debt");
   if(D.incomeTotal > 0 && debtPay && debtPay.value > 0){
-    const ratio = Math.round(debtPay.value / D.incomeTotal * 100);
-    if(ratio >= THRESHOLDS.debtRatioDanger){
+    /* 判定は四捨五入前の値で行う（専門指標の表・方針案と同じ基準にそろえる。
+       四捨五入した値で判定すると、19.6％が「約20％・注意」になり表の「良好」と食い違う）。
+       表示だけ整数に丸める。 */
+    const exact = debtPay.value / D.incomeTotal * 100;
+    const ratio = Math.round(exact);
+    if(exact >= THRESHOLDS.debtRatioDanger){
       flags.push({level:"danger", icon:"💳", title:"借金の返済が収入の約"+ratio+"％を占めています",
         body:"一般に、<b>返済が収入の3割を超えると家計の維持がかなり難しい状態</b>とされます（公的基準ではなく一般的なめやす）。返済の見直し・債務整理を専門家に相談する段階です。法テラスにご相談ください。"});
-    } else if(ratio >= THRESHOLDS.debtRatioCaution){
+    } else if(exact >= THRESHOLDS.debtRatioCaution){
       flags.push({level:"caution", icon:"💳", title:"借金の返済が収入の約"+ratio+"％を占めています",
         body:"一般に、返済が収入の2割を超えると家計への負担が大きいとされます（公的基準ではなく一般的なめやす）。返済計画の見直しについて、早めの相談をおすすめします。"});
     }
@@ -2023,7 +2030,7 @@ function buildReport(){
     h += "<tr><th>残高（概算）</th><td>"+(T.balanceBlank?"0円（空欄）":yen(T.balance))+"</td></tr>";
     h += "<tr><th>毎月の返済額</th><td>"+(T.monthlyBlank?"0円（空欄）":yen(T.monthly))+"</td></tr>";
     h += "<tr><th>免除要件の該当（本人申告）</th><td>"+(menjo.length?menjo.map(esc).join("・"):"該当なし")+"</td></tr>";
-    h += "<tr><th>ナビの表示</th><td>"+(T.menjoHit?"「償還免除に当てはまる可能性がある」旨を表示":(T.fumei?"「住民税の確認が必要」旨を表示":"免除要件に該当なしと表示"))+"</td></tr>";
+    h += "<tr><th>ナビの表示</th><td>"+(T.use==="menjo"?"「免除になっている」との回答を表示":T.use==="done"?"「返済済み」との回答を表示":T.menjoHit?"「償還免除に当てはまる可能性がある」旨を表示":(T.fumei?"「住民税の確認が必要」旨を表示":"免除要件に該当なしと表示"))+"</td></tr>";
     h += "</table>";
     h += "<p style='font-size:12px;color:#666;'>※本人の自己申告に基づく表示です。免除の可否は兵庫県社会福祉協議会が判定します（特例貸付コールセンター "+esc(TOKUREI.callcenter)+"）。</p>";
   }
